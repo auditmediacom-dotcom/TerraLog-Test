@@ -382,9 +382,41 @@
             showPage('endPage');
         }
 
-       function shareReport() {
-    downloadReport();
-    alert('✅ Fichier généré! Appuie et maintiens le fichier dans les téléchargements pour le partager par Email, WhatsApp, Google Drive, etc.');
+     function shareReport() {
+    const data = [
+        ['Magasin', 'Numéros', 'Adresses', 'Codes Postal', 'Ville', 'Nombre de foyers', 'Civilité', 'Nom du résident', 'Réception document'],
+        ...currentAddresses.map(a => [
+            missionInfo.magasin,
+            a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero,
+            a.rue,
+            '',
+            a.commune,
+            a.foyers || '',
+            a.civilite || '',
+            a.nomPersonne || '',
+            a.resultat === 'Bien servi' ? 'SERVI' : a.resultat === 'Non servi' ? 'NON SERVI' : 'MAL SERVI'
+        ])
+    ];
+    
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Feuil1');
+    ws['!cols'] = [{wch:25},{wch:12},{wch:35},{wch:15},{wch:25},{wch:15},{wch:12},{wch:25},{wch:20}];
+    
+    const fileName = `Rapport_${missionInfo.magasin}_s${missionInfo.semaine}.xlsx`;
+    
+    // Pour Android et iPhone
+    const blob = XLSX.write(wb, {bookType: 'xlsx', type: 'blob'});
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    
+    alert('✅ Fichier prêt à partager! Appuie et maintiens le fichier pour le partager par Email, WhatsApp, Google Drive, etc.');
 }
         function downloadReport() {
             const data = [
