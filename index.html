@@ -81,7 +81,7 @@
             <div id="reportContent"></div>
             <div class="button-group">
                 <button type="button" class="share" onclick="shareReport()">📤 Partager</button>
-                <button type="button" class="secondary" onclick="downloadReport()">💾 Télécharger</button>
+                <button type="button" onclick="downloadReport()">💾 Télécharger</button>
             </div>
             <button type="button" class="secondary" onclick="location.reload()">🔄 Nouvelle mission</button>
         </div>
@@ -383,39 +383,9 @@
         }
 
         function shareReport() {
-            const data = [
-                ['Magasin', 'Numéros', 'Adresses', 'Codes Postal', 'Ville', 'Nombre de foyers', 'Civilité', 'Nom du résident', 'Réception document'],
-                ...currentAddresses.map(a => [
-                    missionInfo.magasin,
-                    a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero,
-                    a.rue,
-                    '',
-                    a.commune,
-                    a.foyers || '',
-                    a.civilite || '',
-                    a.nomPersonne || '',
-                    a.resultat === 'Bien servi' ? 'SERVI' : a.resultat === 'Non servi' ? 'NON SERVI' : 'MAL SERVI'
-                ])
-            ];
-            
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Feuil1');
-            ws['!cols'] = [{wch:25},{wch:12},{wch:35},{wch:15},{wch:25},{wch:15},{wch:12},{wch:25},{wch:20}];
-            
-            const fileName = `Rapport_${missionInfo.magasin}_s${missionInfo.semaine}.xlsx`;
-            XLSX.writeFile(wb, fileName);
-            
-            // Sur Android, déclenche le partage du fichier
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Rapport TerraLog',
-                    text: `Rapport de mission - ${missionInfo.magasin} - Semaine ${missionInfo.semaine}`,
-                    files: []
-                }).catch(err => console.log('Erreur partage:', err));
-            } else {
-                alert('✅ Fichier générée! Clique sur "Télécharger" pour l\'enregistrer et le partager.');
-            }
+            const fileName = `Rapport_${missionInfo.magasin}_s${misionInfo.semaine}.xlsx`;
+            downloadReport();
+            alert('✅ Fichier généré! Appuie et maintiens le fichier pour le partager par Email, WhatsApp, Google Drive, etc.');
         }
 
         function downloadReport() {
