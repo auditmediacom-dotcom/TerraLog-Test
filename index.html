@@ -330,6 +330,9 @@
         }
 
         function finishMission() {
+            const secteurs = prompt('Nombre de secteurs réalisés :');
+            if (secteurs === null) return;
+            
             if (currentAddresses.length === 0) {
                 alert('❌ Aucune adresse saisie');
                 return;
@@ -338,6 +341,7 @@
             let reportHTML = `<p><strong>Mission:</strong> ${missionInfo.magasin}</p>
                 <p><strong>Enquêtrice:</strong> ${missionInfo.prenom} ${missionInfo.nom}</p>
                 <p><strong>Semaine:</strong> ${missionInfo.semaine}</p>
+                <p><strong>Secteurs réalisés:</strong> ${secteurs}</p>
                 <p><strong>Adresses saisies:</strong> ${currentAddresses.length}</p>
                 <table>
                     <tr>
