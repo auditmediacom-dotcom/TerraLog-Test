@@ -1,1 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TerraLog - Test</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .container { background: white; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); padding: 40px; max-width: 600px; width: 100%; }
+        h1 { color: #333; text-align: center; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #333; font-weight: 500; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: #667eea; }
+        button { background: #667eea; color: white; padding: 12px 30px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; width: 100%; margin-bottom: 10px; }
+        button:hover { background: #5568d3; }
+        .hidden { display: none; }
+        .address-item { background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 10px; }
+        .success { color: green; }
+        .error { color: red; }
+        table { border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #667eea; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="authPage">
+            <h1>📱 TerraLog - Test</h1>
+            <div class="form-group">
+                <label>Code Mission :</label>
+                <input type="text" id="codeInput" placeholder="Ex: 1234">
+            </div>
+            <button onclick="authenticateMission()">Accéder à ma mission</button>
+        </div>
 
+        <div id="missionPage" class="hidden">
+            <h1>Configuration Mission</h1>
+            <div class="form-group">
+                <label>Nom :</label>
+                <input type="text" id="nomInput" readonly>
+            </div>
+            <div class="form-group">
+                <label>Prénom :</label>
+                <input type="text" id="prenomInput" readonly>
+            </div>
+            <div class="form-group">
+                <label>Client :</label>
+                <input type="text" id="clientInput" readonly>
+            </div>
+            <div class="form-group">
+                <label>Magasin :</label>
+                <input type="text" id="magasinInput" readonly>
+            </div>
+            <div class="form-group">
+                <label>Semaine :</label>
+                <input type="number" id="semaineInput" value="15">
+            </div>
+            <button onclick="startMission()">Commencer la mission</button>
+        </div>
+
+        <div id="saisiePageParent" class="hidden">
+            <div id="saisiePageContent"></div>
+        </div>
+
+        <div id="endPage" class="hidden">
+            <h1>Fin de journée</h1>
+            <div id="reportContent"></div>
+            <button onclick="downloadReport()">💾 Télécharger rapport</button>
+            <button onclick="location.reload()">🔄 Nouvelle mission</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        const missionsData = {"1234":{"prenom":"Séverine","nom":"COUPRIE","client":"Sylvalliance","magasin":"Gognies Chaussée","semaine":"15","communes":["Gognies-Chaussée"],"rues_par_commune":{"Gognies-Chaussée":["RUE DE LA PAIX","RUE DES FLEURS","RUE DU COMMERCE"]}}};
+        const streetRanges = {"Gognies-Chaussée|RUE DE LA PAIX":[{"debut":1,"fin":50}],"Gognies-Chaussée|RUE DES FLEURS":[{"debut":1,"fin":40}],"Gognies-Chaussée|RUE DU COMMERCE":[{"debut":1,"fin":30}]};
+        
+        let currentAddresses = [];
+        let missionInfo = {};
+        let currentMissionCode = null;
+
+        function showPage(pageId) {
+            document.getElementById('authPage').classList.add('hidden');
+            document.getElementById('missionPage').classList.add('hidden');
+            document.getElementById('saisiePageParent').classList.add('hidden');
+            document.getElementById('endPage').classList.add('hidden');
+            document.getElementById(pageId).classList.remove('hidden');
+        }
+
+        function authenticateMission() {
+            const code = document.getElementById('codeInput').value;
+            if (!missionsData[code]) {
+                alert('❌ Code mission invalide');
+                return;
+            }
+            
+            currentMissionCode = code;
+            const mission = missionsData[code];
+            document.getElementById('nomInput').value = mission.nom;
+            document.getElementById('prenomInput').value = mission.prenom;
+            document.getElementById('clientInput').value = mission.client;
+            document.getElementById('magasinInput').value = mission.magasin;
+            
+            showPage('missionPage');
+        }
+
+        function startMission() {
+            const semaine = document.getElementById('semaineInput').value;
+            missionInfo = {
+                code: currentMissionCode,
+                nom: document.getElementById('nomInput').value,
+                prenom: document.getElementById('prenomInput').value,
+                client: document.getElementById('clientInput').value,
+                magasin: document.getElementById('magasinInput').value,
+                semaine: semaine
+            };
+            
+            const mission = missionsData[currentMissionCode];
+            let saisieHTML = `<h1>Saisie Terrain</h1>
+                <div class="form-group">
+                    <label>Commune :</label>
+                    <select id="communeSelect" onchange="updateStreets()">
+                        <option value="">-- Sélectionner --</option>
+                        ${mission.communes.map(c => `<option value="${c}">${c}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Rue :</label>
+                    <select id="rueSelect">
+                        <option value="">-- Sélectionner --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Numéro :</label>
+                    <input type="number" id="numeroInput">
+                </div>
+                <div class="form-group">
+                    <label>Résultat :</label>
+                    <select id="resultatSelect">
+                        <option value="">-- Sélectionner --</option>
+                        <option value="Bien servi">✅ Bien servi</option>
+                        <option value="Non servi">❌ Non servi</option>
+                        <option value="Mal servi">⚠️ Mal servi</option>
+                    </select>
+                </div>
+                <button onclick="addAddress()">➕ Ajouter l'adresse</button>
+                <button onclick="finishMission()">✅ Fin de journée</button>
+                <div id="addressList"></div>`;
+            
+            document.getElementById('saisiePageContent').innerHTML = saisieHTML;
+            showPage('saisiePageParent');
+        }
+
+        function updateStreets() {
+            const commune = document.getElementById('communeSelect').value;
+            const mission = missionsData[currentMissionCode];
+            const rues = mission.rues_par_commune[commune] || [];
+            document.getElementById('rueSelect').innerHTML = '<option value="">-- Sélectionner --</option>' + 
+                rues.map(r => `<option value="${r}">${r}</option>`).join('');
+        }
+
+        function addAddress() {
+            const commune = document.getElementById('communeSelect').value;
+            const rue = document.getElementById('rueSelect').value;
+            const numero = document.getElementById('numeroInput').value;
+            const resultat = document.getElementById('resultatSelect').value;
+
+            if (!commune || !rue || !numero || !resultat) {
+                alert('❌ Remplissez tous les champs');
+                return;
+            }
+
+            currentAddresses.push({ commune, rue, numero, resultat });
+            
+            let html = '<h3>Adresses saisies :</h3>';
+            currentAddresses.forEach((addr, idx) => {
+                html += `<div class="address-item">${addr.numero} ${addr.rue} - ${addr.commune} <span class="success">${addr.resultat}</span></div>`;
+            });
+            document.getElementById('addressList').innerHTML = html;
+            
+            document.getElementById('numeroInput').value = '';
+            document.getElementById('resultatSelect').value = '';
+        }
+
+        function finishMission() {
+            if (currentAddresses.length === 0) {
+                alert('❌ Aucune adresse saisie');
+                return;
+            }
+
+            let reportHTML = `<p><strong>Mission:</strong> ${missionInfo.magasin}</p>
+                <p><strong>Enquêtrice:</strong> ${missionInfo.prenom} ${missionInfo.nom}</p>
+                <p><strong>Semaine:</strong> ${missionInfo.semaine}</p>
+                <p><strong>Adresses saisies:</strong> ${currentAddresses.length}</p>
+                <table style="width:100%; margin-top:20px;">
+                    <tr style="background:#667eea;color:white;">
+                        <th>Numéro</th>
+                        <th>Rue</th>
+                        <th>Commune
