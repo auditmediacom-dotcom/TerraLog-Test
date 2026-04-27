@@ -382,12 +382,10 @@
             showPage('endPage');
         }
 
-        function shareReport() {
-    const Nom du fichier = `Rapport_${missionInfo.magasin}_s${missionInfo.semaine}.xlsx`;
+       function shareReport() {
     downloadReport();
     alert('✅ Fichier généré! Appuie et maintiens le fichier dans les téléchargements pour le partager par Email, WhatsApp, Google Drive, etc.');
 }
-
         function downloadReport() {
             const data = [
                 ['Magasin', 'Numéros', 'Adresses', 'Codes Postal', 'Ville', 'Nombre de foyers', 'Civilité', 'Nom du résident', 'Réception document'],
