@@ -1,1 +1,9 @@
-
+{
+  "name": "TerraLog - Test",
+  "short_name": "TerraLog",
+  "start_url": "/TerraLog-Test/",
+  "display": "standalone",
+  "theme_color": "#667eea",
+  "background_color": "#ffffff",
+  "icons": []
+}
