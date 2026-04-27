@@ -169,7 +169,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Nombre de foyers (optionnel) :</label>
+                    <label>Nombre de foyers :</label>
                     <input type="number" id="foyersInput">
                 </div>
                 <div class="form-group">
@@ -282,9 +282,10 @@
             const commune = document.getElementById('communeSelect').value;
             const rue = document.getElementById('rueSelect').value;
             const numero = document.getElementById('numeroInput').value;
+            const foyers = document.getElementById('foyersInput').value;
             const resultat = document.getElementById('resultatSelect').value;
 
-            if (!commune || !rue || !numero || !resultat) {
+            if (!commune || !rue || !numero || !foyers || !resultat) {
                 alert('❌ Remplissez tous les champs obligatoires');
                 return;
             }
@@ -293,7 +294,7 @@
                 commune, rue, numero,
                 suffixe: document.getElementById('sufixeInput').value,
                 habitat: document.getElementById('habitatSelect').value,
-                foyers: document.getElementById('foyersInput').value,
+                foyers: foyers,
                 acces: document.getElementById('accesSelect').value,
                 resultat: resultat,
                 typemalservi: document.getElementById('typemalservSelect').value || '',
