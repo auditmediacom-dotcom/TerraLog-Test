@@ -3,33 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TerraLog - Test</title>
+    <title>TerraLog - AMC</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .container { background: white; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); padding: 40px; max-width: 600px; width: 100%; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .container { background: white; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); padding: 40px; max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto; }
         h1 { color: #333; text-align: center; margin-bottom: 30px; font-size: 24px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; color: #333; font-weight: 500; }
-        input, select { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 14px; }
-        input:focus, select:focus { outline: none; border-color: #667eea; }
-        button { background: #667eea; color: white; padding: 12px 30px; border: none; border-radius: 5px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; }
+        h2 { color: #667eea; font-size: 18px; margin-top: 20px; margin-bottom: 15px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; color: #333; font-weight: 500; font-size: 13px; }
+        input, select, textarea { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 13px; font-family: Arial; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; }
+        input[readonly] { background-color: #f0f0f0; cursor: not-allowed; }
+        button { background: #667eea; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 8px; }
         button:hover { background: #5568d3; }
+        button.secondary { background: #764ba2; }
+        button.secondary:hover { background: #6a3f94; }
         .hidden { display: none !important; }
-        .address-item { background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid #667eea; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        .address-item { background: #f5f5f5; padding: 12px; border-radius: 5px; margin-bottom: 8px; border-left: 4px solid #667eea; font-size: 13px; }
+        .photo-preview { max-width: 150px; max-height: 150px; margin-top: 10px; border-radius: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background: #667eea; color: white; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; }
+        .checkbox-group input[type="checkbox"] { width: auto; }
     </style>
 </head>
 <body>
     <div class="container">
         <!-- Page Authentification -->
         <div id="authPage">
-            <h1>📱 TerraLog - Test</h1>
+            <h1>📱 TerraLog</h1>
             <div class="form-group">
                 <label>Code Mission :</label>
-                <input type="text" id="codeInput" value="1234" placeholder="Ex: 1234">
+                <input type="text" id="codeInput" placeholder="Ex: 1234">
             </div>
             <button type="button" onclick="authenticateMission()">Accéder à ma mission</button>
         </div>
@@ -55,12 +62,12 @@
             </div>
             <div class="form-group">
                 <label>Semaine :</label>
-                <input type="number" id="semaineInput" value="15">
+                <input type="number" id="semaineInput">
             </div>
             <button type="button" onclick="startMission()">Commencer la mission</button>
         </div>
 
-        <!-- Page Saisie -->
+        <!-- Page Saisie Terrain -->
         <div id="saisiePageParent" class="hidden">
             <div id="saisiePageContent"></div>
         </div>
@@ -69,25 +76,20 @@
         <div id="endPage" class="hidden">
             <h1>Fin de journée</h1>
             <div id="reportContent"></div>
-            <button type="button" onclick="downloadReport()">💾 Télécharger rapport</button>
-            <button type="button" onclick="location.reload()">🔄 Nouvelle mission</button>
+            <button type="button" onclick="downloadReport()">💾 Télécharger rapport Excel</button>
+            <button type="button" class="secondary" onclick="location.reload()">🔄 Nouvelle mission</button>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         const missionsData = {
-            "1234": {
-                "prenom": "Séverine",
-                "nom": "COUPRIE",
-                "client": "Sylvalliance",
-                "magasin": "Gognies Chaussée",
-                "semaine": "15",
-                "communes": ["Gognies-Chaussée"],
-                "rues_par_commune": {
-                    "Gognies-Chaussée": ["RUE DE LA PAIX", "RUE DES FLEURS", "RUE DU COMMERCE"]
-                }
-            }
+            "1234": {"prenom":"Séverine","nom":"COUPRIE","client":"Sylvalliance","magasin":"Gognies Chaussée","semaine":"15","communes":["Gognies-Chaussée"],"rues_par_commune":{"Gognies-Chaussée":["RUE DE LA PAIX","RUE DES FLEURS","RUE DU COMMERCE"]}},
+            "2345": {"prenom":"Séverine","nom":"COUPRIE","client":"Lidl Classique","magasin":"Mérignac","semaine":"16","communes":["Mérignac"],"rues_par_commune":{"Mérignac":["RUE DE LA REPUBLIQUE","RUE DE LA GARE","AVENUE DU GENERAL LECLERC"]}},
+            "5678": {"prenom":"Séverine","nom":"COUPRIE","client":"Centrakor","magasin":"Malemort sur Corrèze","semaine":"16","communes":["Malemort-sur-Corrèze"],"rues_par_commune":{"Malemort-sur-Corrèze":["RUE PRINCIPALE","RUE DE L'ÉGLISE"]}},
+            "7890": {"prenom":"Séverine","nom":"COUPRIE","client":"Centrakor","magasin":"Lesparre Médoc","semaine":"19","communes":["Lesparre-Médoc"],"rues_par_commune":{"Lesparre-Médoc":["RUE DE L'EGLISE","RUE DU CLAUZET"]}},
+            "0011": {"prenom":"Séverine","nom":"COUPRIE","client":"Coopérative U","magasin":"17_C (Charente Poste)","semaine":"18","communes":["Angoulême"],"rues_par_commune":{"Angoulême":["RUE DE BORDEAUX","RUE MARENGO"]}},
+            "0022": {"prenom":"Séverine","nom":"COUPRIE","client":"Districenter","magasin":"Lesparre Médoc","semaine":"18","communes":["Lesparre-Médoc"],"rues_par_commune":{"Lesparre-Médoc":["RUE DU COMMERCE","RUE DU MARCHE"]}}
         };
 
         let currentAddresses = [];
@@ -104,8 +106,6 @@
 
         function authenticateMission() {
             const code = document.getElementById('codeInput').value.trim();
-            console.log('Code saisi:', code);
-            
             if (!missionsData[code]) {
                 alert('❌ Code mission invalide');
                 return;
@@ -117,6 +117,7 @@
             document.getElementById('prenomInput').value = mission.prenom;
             document.getElementById('clientInput').value = mission.client;
             document.getElementById('magasinInput').value = mission.magasin;
+            document.getElementById('semaineInput').value = mission.semaine;
             
             showPage('missionPage');
         }
@@ -134,6 +135,7 @@
             
             const mission = missionsData[currentMissionCode];
             let saisieHTML = `<h1>Saisie Terrain</h1>
+                <h2>Localisation</h2>
                 <div class="form-group">
                     <label>Commune :</label>
                     <select id="communeSelect" onchange="updateStreets()">
@@ -152,20 +154,119 @@
                     <input type="number" id="numeroInput">
                 </div>
                 <div class="form-group">
+                    <label>Suffixe (optionnel) :</label>
+                    <input type="text" id="sufixeInput" placeholder="Bis, Ter, A, B...">
+                </div>
+                
+                <h2>Informations Adresse</h2>
+                <div class="form-group">
+                    <label>Habitat :</label>
+                    <select id="habitatSelect">
+                        <option value="">-- Sélectionner --</option>
+                        <option value="Collectif">Collectif</option>
+                        <option value="Individuel">Individuel</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Nombre de foyers (optionnel) :</label>
+                    <input type="number" id="foyersInput">
+                </div>
+                <div class="form-group">
+                    <label>Accès :</label>
+                    <select id="accesSelect">
+                        <option value="">-- Sélectionner --</option>
+                        <option value="Libre">Libre</option>
+                        <option value="Vigik">Vigik</option>
+                        <option value="Interphone">Interphone</option>
+                        <option value="Code">Code</option>
+                        <option value="Non servi">Non servi</option>
+                    </select>
+                </div>
+                
+                <h2>Résultat</h2>
+                <div class="form-group">
                     <label>Résultat :</label>
-                    <select id="resultatSelect">
+                    <select id="resultatSelect" onchange="toggleMalServi()">
                         <option value="">-- Sélectionner --</option>
                         <option value="Bien servi">✅ Bien servi</option>
                         <option value="Non servi">❌ Non servi</option>
                         <option value="Mal servi">⚠️ Mal servi</option>
                     </select>
                 </div>
+                
+                <div id="malServiSection" class="hidden">
+                    <div class="form-group">
+                        <label>Type de mal servi :</label>
+                        <select id="typemalservSelect">
+                            <option value="">-- Sélectionner --</option>
+                            <option value="Stop Pubs">Stop Pubs</option>
+                            <option value="Dépôt">Dépôt</option>
+                            <option value="Multi distribution">Multi distribution</option>
+                            <option value="Dépassement excessif">Dépassement excessif</option>
+                            <option value="Encartage">Encartage</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Photo (optionnel) :</label>
+                        <input type="file" id="photoInput" accept="image/*" onchange="previewPhoto()">
+                        <img id="photoPreview" class="photo-preview" style="display:none;">
+                    </div>
+                    <div class="form-group">
+                        <label>Commentaires :</label>
+                        <textarea id="commentairesInput" rows="3" placeholder="Commentaires..."></textarea>
+                    </div>
+                </div>
+                
+                <h2>Contact</h2>
+                <div class="form-group">
+                    <label>Civilité :</label>
+                    <select id="civiliteSelect">
+                        <option value="">-- Sélectionner --</option>
+                        <option value="M.">M.</option>
+                        <option value="Mme">Mme</option>
+                        <option value="Mlle">Mlle</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Nom (optionnel) :</label>
+                    <input type="text" id="nomPersonneInput" placeholder="Nom">
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="pasCommunicationCheck">
+                        <label style="margin:0;">Pas de communication</label>
+                    </div>
+                </div>
+                
                 <button type="button" onclick="addAddress()">➕ Ajouter l'adresse</button>
-                <button type="button" onclick="finishMission()">✅ Fin de journée</button>
+                <button type="button" class="secondary" onclick="finishMission()">✅ Fin de journée</button>
                 <div id="addressList"></div>`;
             
             document.getElementById('saisiePageContent').innerHTML = saisieHTML;
             showPage('saisiePageParent');
+        }
+
+        function toggleMalServi() {
+            const resultat = document.getElementById('resultatSelect').value;
+            const section = document.getElementById('malServiSection');
+            if (resultat === 'Mal servi') {
+                section.classList.remove('hidden');
+            } else {
+                section.classList.add('hidden');
+            }
+        }
+
+        function previewPhoto() {
+            const input = document.getElementById('photoInput');
+            const preview = document.getElementById('photoPreview');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
         }
 
         function updateStreets() {
@@ -183,20 +284,49 @@
             const resultat = document.getElementById('resultatSelect').value;
 
             if (!commune || !rue || !numero || !resultat) {
-                alert('❌ Remplissez tous les champs');
+                alert('❌ Remplissez tous les champs obligatoires');
                 return;
             }
 
-            currentAddresses.push({ commune, rue, numero, resultat });
+            let addr = {
+                commune, rue, numero,
+                suffixe: document.getElementById('sufixeInput').value,
+                habitat: document.getElementById('habitatSelect').value,
+                foyers: document.getElementById('foyersInput').value,
+                acces: document.getElementById('accesSelect').value,
+                resultat: resultat,
+                typemalservi: document.getElementById('typemalservSelect').value || '',
+                photo: document.getElementById('photoInput').files[0] || null,
+                commentaires: document.getElementById('commentairesInput').value || '',
+                civilite: document.getElementById('civiliteSelect').value,
+                nomPersonne: document.getElementById('nomPersonneInput').value,
+                pasCommunication: document.getElementById('pasCommunicationCheck').checked
+            };
+
+            currentAddresses.push(addr);
             
             let html = '<h3>Adresses saisies :</h3>';
-            currentAddresses.forEach((addr, idx) => {
-                html += `<div class="address-item">${addr.numero} ${addr.rue} - ${addr.commune} <strong>${addr.resultat}</strong></div>`;
+            currentAddresses.forEach((a, idx) => {
+                const numeroComplet = a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero;
+                html += `<div class="address-item">${numeroComplet} ${a.rue} - ${a.commune} <strong>${a.resultat}</strong></div>`;
             });
             document.getElementById('addressList').innerHTML = html;
             
+            // Réinitialiser le formulaire
             document.getElementById('numeroInput').value = '';
+            document.getElementById('sufixeInput').value = '';
+            document.getElementById('habitatSelect').value = '';
+            document.getElementById('foyersInput').value = '';
+            document.getElementById('accesSelect').value = '';
             document.getElementById('resultatSelect').value = '';
+            document.getElementById('typemalservSelect').value = '';
+            document.getElementById('photoInput').value = '';
+            document.getElementById('commentairesInput').value = '';
+            document.getElementById('civiliteSelect').value = '';
+            document.getElementById('nomPersonneInput').value = '';
+            document.getElementById('pasCommunicationCheck').checked = false;
+            document.getElementById('malServiSection').classList.add('hidden');
+            document.getElementById('photoPreview').style.display = 'none';
         }
 
         function finishMission() {
@@ -211,18 +341,27 @@
                 <p><strong>Adresses saisies:</strong> ${currentAddresses.length}</p>
                 <table>
                     <tr>
+                        <th>Magasin</th>
                         <th>Numéro</th>
                         <th>Rue</th>
                         <th>Commune</th>
+                        <th>Foyers</th>
+                        <th>Civilité</th>
+                        <th>Nom</th>
                         <th>Résultat</th>
                     </tr>`;
             
-            currentAddresses.forEach(addr => {
+            currentAddresses.forEach(a => {
+                const numeroComplet = a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero;
                 reportHTML += `<tr>
-                    <td>${addr.numero}</td>
-                    <td>${addr.rue}</td>
-                    <td>${addr.commune}</td>
-                    <td>${addr.resultat}</td>
+                    <td>${missionInfo.magasin}</td>
+                    <td>${numeroComplet}</td>
+                    <td>${a.rue}</td>
+                    <td>${a.commune}</td>
+                    <td>${a.foyers || ''}</td>
+                    <td>${a.civilite || ''}</td>
+                    <td>${a.nomPersonne || ''}</td>
+                    <td>${a.resultat}</td>
                 </tr>`;
             });
             reportHTML += '</table>';
@@ -233,14 +372,25 @@
 
         function downloadReport() {
             const data = [
-                ['Magasin', 'Numéro', 'Rue', 'Commune', 'Résultat'],
-                ...currentAddresses.map(a => [missionInfo.magasin, a.numero, a.rue, a.commune, a.resultat])
+                ['Magasin', 'Numéros', 'Adresses', 'Codes Postal', 'Ville', 'Nombre de foyers', 'Civilité', 'Nom du résident', 'Réception document'],
+                ...currentAddresses.map(a => [
+                    missionInfo.magasin,
+                    a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero,
+                    a.rue,
+                    '',
+                    a.commune,
+                    a.foyers || '',
+                    a.civilite || '',
+                    a.nomPersonne || '',
+                    a.resultat === 'Bien servi' ? 'SERVI' : a.resultat === 'Non servi' ? 'NON SERVI' : 'MAL SERVI'
+                ])
             ];
             
             const ws = XLSX.utils.aoa_to_sheet(data);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Rapport');
-            XLSX.writeFile(wb, `Rapport_${missionInfo.magasin}.xlsx`);
+            XLSX.utils.book_append_sheet(wb, ws, 'Feuil1');
+            ws['!cols'] = [{wch:25},{wch:12},{wch:35},{wch:15},{wch:25},{wch:15},{wch:12},{wch:25},{wch:20}];
+            XLSX.writeFile(wb, `Rapport_${missionInfo.magasin}_s${missionInfo.semaine}.xlsx`);
         }
     </script>
 </body>
