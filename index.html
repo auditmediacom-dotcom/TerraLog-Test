@@ -8,33 +8,33 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .container { background: white; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); padding: 40px; max-width: 600px; width: 100%; }
-        h1 { color: #333; text-align: center; margin-bottom: 30px; }
+        h1 { color: #333; text-align: center; margin-bottom: 30px; font-size: 24px; }
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; color: #333; font-weight: 500; }
         input, select { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 5px; font-size: 14px; }
         input:focus, select:focus { outline: none; border-color: #667eea; }
-        button { background: #667eea; color: white; padding: 12px 30px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; width: 100%; margin-bottom: 10px; }
+        button { background: #667eea; color: white; padding: 12px 30px; border: none; border-radius: 5px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; }
         button:hover { background: #5568d3; }
-        .hidden { display: none; }
-        .address-item { background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 10px; }
-        .success { color: green; }
-        .error { color: red; }
-        table { border-collapse: collapse; }
+        .hidden { display: none !important; }
+        .address-item { background: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid #667eea; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background: #667eea; color: white; }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Page Authentification -->
         <div id="authPage">
             <h1>📱 TerraLog - Test</h1>
             <div class="form-group">
                 <label>Code Mission :</label>
-                <input type="text" id="codeInput" placeholder="Ex: 1234">
+                <input type="text" id="codeInput" value="1234" placeholder="Ex: 1234">
             </div>
-            <button onclick="authenticateMission()">Accéder à ma mission</button>
+            <button type="button" onclick="authenticateMission()">Accéder à ma mission</button>
         </div>
 
+        <!-- Page Configuration -->
         <div id="missionPage" class="hidden">
             <h1>Configuration Mission</h1>
             <div class="form-group">
@@ -57,26 +57,39 @@
                 <label>Semaine :</label>
                 <input type="number" id="semaineInput" value="15">
             </div>
-            <button onclick="startMission()">Commencer la mission</button>
+            <button type="button" onclick="startMission()">Commencer la mission</button>
         </div>
 
+        <!-- Page Saisie -->
         <div id="saisiePageParent" class="hidden">
             <div id="saisiePageContent"></div>
         </div>
 
+        <!-- Page Fin de journée -->
         <div id="endPage" class="hidden">
             <h1>Fin de journée</h1>
             <div id="reportContent"></div>
-            <button onclick="downloadReport()">💾 Télécharger rapport</button>
-            <button onclick="location.reload()">🔄 Nouvelle mission</button>
+            <button type="button" onclick="downloadReport()">💾 Télécharger rapport</button>
+            <button type="button" onclick="location.reload()">🔄 Nouvelle mission</button>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
-        const missionsData = {"1234":{"prenom":"Séverine","nom":"COUPRIE","client":"Sylvalliance","magasin":"Gognies Chaussée","semaine":"15","communes":["Gognies-Chaussée"],"rues_par_commune":{"Gognies-Chaussée":["RUE DE LA PAIX","RUE DES FLEURS","RUE DU COMMERCE"]}}};
-        const streetRanges = {"Gognies-Chaussée|RUE DE LA PAIX":[{"debut":1,"fin":50}],"Gognies-Chaussée|RUE DES FLEURS":[{"debut":1,"fin":40}],"Gognies-Chaussée|RUE DU COMMERCE":[{"debut":1,"fin":30}]};
-        
+        const missionsData = {
+            "1234": {
+                "prenom": "Séverine",
+                "nom": "COUPRIE",
+                "client": "Sylvalliance",
+                "magasin": "Gognies Chaussée",
+                "semaine": "15",
+                "communes": ["Gognies-Chaussée"],
+                "rues_par_commune": {
+                    "Gognies-Chaussée": ["RUE DE LA PAIX", "RUE DES FLEURS", "RUE DU COMMERCE"]
+                }
+            }
+        };
+
         let currentAddresses = [];
         let missionInfo = {};
         let currentMissionCode = null;
@@ -90,7 +103,9 @@
         }
 
         function authenticateMission() {
-            const code = document.getElementById('codeInput').value;
+            const code = document.getElementById('codeInput').value.trim();
+            console.log('Code saisi:', code);
+            
             if (!missionsData[code]) {
                 alert('❌ Code mission invalide');
                 return;
@@ -145,8 +160,8 @@
                         <option value="Mal servi">⚠️ Mal servi</option>
                     </select>
                 </div>
-                <button onclick="addAddress()">➕ Ajouter l'adresse</button>
-                <button onclick="finishMission()">✅ Fin de journée</button>
+                <button type="button" onclick="addAddress()">➕ Ajouter l'adresse</button>
+                <button type="button" onclick="finishMission()">✅ Fin de journée</button>
                 <div id="addressList"></div>`;
             
             document.getElementById('saisiePageContent').innerHTML = saisieHTML;
@@ -176,7 +191,7 @@
             
             let html = '<h3>Adresses saisies :</h3>';
             currentAddresses.forEach((addr, idx) => {
-                html += `<div class="address-item">${addr.numero} ${addr.rue} - ${addr.commune} <span class="success">${addr.resultat}</span></div>`;
+                html += `<div class="address-item">${addr.numero} ${addr.rue} - ${addr.commune} <strong>${addr.resultat}</strong></div>`;
             });
             document.getElementById('addressList').innerHTML = html;
             
@@ -194,8 +209,39 @@
                 <p><strong>Enquêtrice:</strong> ${missionInfo.prenom} ${missionInfo.nom}</p>
                 <p><strong>Semaine:</strong> ${missionInfo.semaine}</p>
                 <p><strong>Adresses saisies:</strong> ${currentAddresses.length}</p>
-                <table style="width:100%; margin-top:20px;">
-                    <tr style="background:#667eea;color:white;">
+                <table>
+                    <tr>
                         <th>Numéro</th>
                         <th>Rue</th>
-                        <th>Commune
+                        <th>Commune</th>
+                        <th>Résultat</th>
+                    </tr>`;
+            
+            currentAddresses.forEach(addr => {
+                reportHTML += `<tr>
+                    <td>${addr.numero}</td>
+                    <td>${addr.rue}</td>
+                    <td>${addr.commune}</td>
+                    <td>${addr.resultat}</td>
+                </tr>`;
+            });
+            reportHTML += '</table>';
+            
+            document.getElementById('reportContent').innerHTML = reportHTML;
+            showPage('endPage');
+        }
+
+        function downloadReport() {
+            const data = [
+                ['Magasin', 'Numéro', 'Rue', 'Commune', 'Résultat'],
+                ...currentAddresses.map(a => [missionInfo.magasin, a.numero, a.rue, a.commune, a.resultat])
+            ];
+            
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Rapport');
+            XLSX.writeFile(wb, `Rapport_${missionInfo.magasin}.xlsx`);
+        }
+    </script>
+</body>
+</html>
