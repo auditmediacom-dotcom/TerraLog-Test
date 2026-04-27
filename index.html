@@ -19,6 +19,8 @@
         button:hover { background: #5568d3; }
         button.secondary { background: #764ba2; }
         button.secondary:hover { background: #6a3f94; }
+        button.share { background: #27ae60; }
+        button.share:hover { background: #229954; }
         .hidden { display: none !important; }
         .address-item { background: #f5f5f5; padding: 12px; border-radius: 5px; margin-bottom: 8px; border-left: 4px solid #667eea; font-size: 13px; }
         .photo-preview { max-width: 150px; max-height: 150px; margin-top: 10px; border-radius: 5px; }
@@ -27,6 +29,7 @@
         th { background: #667eea; color: white; }
         .checkbox-group { display: flex; align-items: center; gap: 10px; }
         .checkbox-group input[type="checkbox"] { width: auto; }
+        .button-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     </style>
 </head>
 <body>
@@ -76,7 +79,10 @@
         <div id="endPage" class="hidden">
             <h1>Fin de journée</h1>
             <div id="reportContent"></div>
-            <button type="button" onclick="downloadReport()">💾 Télécharger rapport Excel</button>
+            <div class="button-group">
+                <button type="button" class="share" onclick="shareReport()">📤 Partager</button>
+                <button type="button" class="secondary" onclick="downloadReport()">💾 Télécharger</button>
+            </div>
             <button type="button" class="secondary" onclick="location.reload()">🔄 Nouvelle mission</button>
         </div>
     </div>
@@ -374,6 +380,42 @@
             
             document.getElementById('reportContent').innerHTML = reportHTML;
             showPage('endPage');
+        }
+
+        function shareReport() {
+            const data = [
+                ['Magasin', 'Numéros', 'Adresses', 'Codes Postal', 'Ville', 'Nombre de foyers', 'Civilité', 'Nom du résident', 'Réception document'],
+                ...currentAddresses.map(a => [
+                    missionInfo.magasin,
+                    a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero,
+                    a.rue,
+                    '',
+                    a.commune,
+                    a.foyers || '',
+                    a.civilite || '',
+                    a.nomPersonne || '',
+                    a.resultat === 'Bien servi' ? 'SERVI' : a.resultat === 'Non servi' ? 'NON SERVI' : 'MAL SERVI'
+                ])
+            ];
+            
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Feuil1');
+            ws['!cols'] = [{wch:25},{wch:12},{wch:35},{wch:15},{wch:25},{wch:15},{wch:12},{wch:25},{wch:20}];
+            
+            const fileName = `Rapport_${missionInfo.magasin}_s${missionInfo.semaine}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            
+            // Sur Android, déclenche le partage du fichier
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Rapport TerraLog',
+                    text: `Rapport de mission - ${missionInfo.magasin} - Semaine ${missionInfo.semaine}`,
+                    files: []
+                }).catch(err => console.log('Erreur partage:', err));
+            } else {
+                alert('✅ Fichier générée! Clique sur "Télécharger" pour l\'enregistrer et le partager.');
+            }
         }
 
         function downloadReport() {
