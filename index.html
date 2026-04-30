@@ -19,8 +19,10 @@
         button:hover { background: #5568d3; }
         button.secondary { background: #764ba2; }
         button.secondary:hover { background: #6a3f94; }
-        button.share { background: #27ae60; }
-        button.share:hover { background: #229954; }
+        button.email { background: #2ecc71; }
+        button.email:hover { background: #27ae60; }
+        button.share { background: #3498db; }
+        button.share:hover { background: #2980b9; }
         button.admin { background: #e74c3c; }
         button.admin:hover { background: #c0392b; }
         .hidden { display: none !important; }
@@ -34,6 +36,7 @@
         .checkbox-group { display: flex; align-items: center; gap: 10px; }
         .checkbox-group input[type="checkbox"] { width: auto; }
         .button-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .button-group-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
     </style>
 </head>
 <body>
@@ -113,7 +116,8 @@
         <div id="endPage" class="hidden">
             <h1>Fin de journée</h1>
             <div id="reportContent"></div>
-            <div class="button-group">
+            <div class="button-group-3">
+                <button type="button" class="email" onclick="sendByEmail()">📧 Email</button>
                 <button type="button" class="share" onclick="shareReport()">📤 Partager</button>
                 <button type="button" onclick="downloadReport()">💾 Télécharger</button>
             </div>
@@ -124,8 +128,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         const ADMIN_PASSWORD = "AMC-25-04-26";
+        const ADMIN_EMAIL = "amc@auditmediacom.com";
         
-        // MISSIONS INTÉGRÉES (pas besoin de fichier externe)
+        // MISSIONS INTÉGRÉES
         let missionsData = {
             "1234": {"prenom":"Séverine","nom":"COUPRIE","client":"Sylvalliance","magasin":"Gognies Chaussée","semaine":"15","communes":["Gognies-Chaussée"],"rues_par_commune":{"Gognies-Chaussée":["RUE DE LA PAIX","RUE DES FLEURS","RUE DU COMMERCE"]}},
             "2345": {"prenom":"Séverine","nom":"COUPRIE","client":"Lidl Classique","magasin":"Mérignac","semaine":"16","communes":["Mérignac"],"rues_par_commune":{"Mérignac":["RUE DE LA REPUBLIQUE","RUE DE LA GARE","AVENUE DU GENERAL LECLERC"]}},
@@ -555,9 +560,9 @@
             showPage('endPage');
         }
 
-        function shareReport() {
+        function generateExcelFile() {
             const data = [
-                ['Magasin', 'Numéros', 'Adresses', 'Codes Postal', 'Ville', 'Nombre de foyers', 'Civilité', 'Nom du résident', 'Réception document'],
+                ['Magasin', 'Numéros', 'Adresses', 'Codes Postal', 'Ville', 'Nombre de foyers', 'Civilité', 'Nom du résident', 'Pas de communication', 'Réception document'],
                 ...currentAddresses.map(a => [
                     missionInfo.magasin,
                     a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero,
@@ -567,6 +572,7 @@
                     a.foyers || '',
                     a.civilite || '',
                     a.nomPersonne || '',
+                    a.pasCommunication ? 'OUI' : 'NON',
                     a.resultat === 'Bien servi' ? 'SERVI' : a.resultat === 'Non servi' ? 'NON SERVI' : 'MAL SERVI'
                 ])
             ];
@@ -574,44 +580,38 @@
             const ws = XLSX.utils.aoa_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Feuil1');
-            ws['!cols'] = [{wch:25},{wch:12},{wch:35},{wch:15},{wch:25},{wch:15},{wch:12},{wch:25},{wch:20}];
+            ws['!cols'] = [{wch:25},{wch:12},{wch:35},{wch:15},{wch:25},{wch:15},{wch:12},{wch:25},{wch:20},{wch:20}];
             
-            const fileName = `Rapport_${missionInfo.magasin}_s${missionInfo.semaine}.xlsx`;
+            return { wb: wb, fileName: `Rapport_${missionInfo.magasin}_s${missionInfo.semaine}.xlsx` };
+        }
+
+        function sendByEmail() {
+            const { wb, fileName } = generateExcelFile();
             
-            const blob = XLSX.write(wb, {bookType: 'xlsx', type: 'blob'});
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+            const subject = `Compte rendu ${missionInfo.client} - ${missionInfo.magasin} - Semaine ${missionInfo.semaine}`;
+            const body = `Bonjour,\n\nVeuillez trouver en pièce jointe le compte rendu de la mission.\n\nCordialement,\n${missionInfo.prenom} ${missionInfo.nom}`;
             
+            const mailtoLink = `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            
+            // Télécharger d'abord le fichier
+            XLSX.writeFile(wb, fileName);
+            
+            // Puis ouvrir le client email
+            setTimeout(() => {
+                window.location.href = mailtoLink;
+                alert(`✅ Fichier téléchargé ! Joignez-le au mail qui va s'ouvrir.\n\nObjet pré-rempli: "${subject}"`);
+            }, 500);
+        }
+
+        function shareReport() {
+            const { wb, fileName } = generateExcelFile();
+            XLSX.writeFile(wb, fileName);
             alert('✅ Fichier prêt à partager! Appuie et maintiens le fichier pour le partager par Email, WhatsApp, Google Drive, etc.');
         }
 
         function downloadReport() {
-            const data = [
-                ['Magasin', 'Numéros', 'Adresses', 'Codes Postal', 'Ville', 'Nombre de foyers', 'Civilité', 'Nom du résident', 'Réception document'],
-                ...currentAddresses.map(a => [
-                    missionInfo.magasin,
-                    a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero,
-                    a.rue,
-                    '',
-                    a.commune,
-                    a.foyers || '',
-                    a.civilite || '',
-                    a.nomPersonne || '',
-                    a.resultat === 'Bien servi' ? 'SERVI' : a.resultat === 'Non servi' ? 'NON SERVI' : 'MAL SERVI'
-                ])
-            ];
-            
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Feuil1');
-            ws['!cols'] = [{wch:25},{wch:12},{wch:35},{wch:15},{wch:25},{wch:15},{wch:12},{wch:25},{wch:20}];
-            XLSX.writeFile(wb, `Rapport_${missionInfo.magasin}_s${missionInfo.semaine}.xlsx`);
+            const { wb, fileName } = generateExcelFile();
+            XLSX.writeFile(wb, fileName);
         }
 
         // Charger les missions locales au démarrage
