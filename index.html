@@ -605,13 +605,14 @@
 
         function generateExcelFile() {
             const data = [
-                ['Commune', 'Numéros', 'Adresses', 'Ville', 'Nombre de foyers', 'Civilité', 'Nom du résident', 'Réception document'],
+                ['Magasin', 'Numéros', 'Adresses', 'Ville', 'Nombre de foyers', 'Accès', 'Civilité', 'Nom du résident', 'Réception document'],
                 ...currentAddresses.map(a => [
-                    a.commune,
+                    missionInfo.magasin,
                     a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero,
                     a.rue,
                     a.commune,
                     a.foyers || '',
+                    a.acces || '',
                     a.civilite || '',
                     a.pasCommunication ? 'Refus nom' : (a.nomPersonne || ''),
                     a.resultat === 'Bien servi' ? 'SERVI' : a.resultat === 'Non servi' ? 'NON SERVI' : 'MAL SERVI'
@@ -621,7 +622,7 @@
             const ws = XLSX.utils.aoa_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Feuil1');
-            ws['!cols'] = [{wch:25},{wch:12},{wch:35},{wch:25},{wch:15},{wch:12},{wch:25},{wch:20}];
+            ws['!cols'] = [{wch:25},{wch:12},{wch:35},{wch:25},{wch:15},{wch:12},{wch:12},{wch:25},{wch:20}];
             
             return { wb: wb, fileName: `Rapport_${missionInfo.magasin}_s${missionInfo.semaine}.xlsx` };
         }
