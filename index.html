@@ -327,13 +327,25 @@
                     <select id="communeSelect" onchange="updateStreets()">
                         <option value="">-- Sélectionner --</option>
                         ${mission.communes.map(c => `<option value="${c}">${c}</option>`).join('')}
+                        <option value="AUTRE">➕ Autre commune (saisie libre)</option>
                     </select>
+                </div>
+                <div id="communeLibreSection" class="hidden">
+                    <div class="form-group">
+                        <label>Commune (saisie libre) :</label>
+                        <input type="text" id="communeLibreInput" placeholder="Tapez la commune">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Rue :</label>
-                    <select id="rueSelect">
-                        <option value="">-- Sélectionner --</option>
-                    </select>
+                    <div id="rueSelectSection">
+                        <select id="rueSelect">
+                            <option value="">-- Sélectionner --</option>
+                        </select>
+                    </div>
+                    <div id="rueLibreSection" class="hidden">
+                        <input type="text" id="rueLibreInput" placeholder="Tapez la rue">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Numéro :</label>
@@ -458,14 +470,41 @@
         function updateStreets() {
             const commune = document.getElementById('communeSelect').value;
             const mission = missionsData[currentMissionCode];
-            const rues = mission.rues_par_commune[commune] || [];
-            document.getElementById('rueSelect').innerHTML = '<option value="">-- Sélectionner --</option>' + 
-                rues.map(r => `<option value="${r}">${r}</option>`).join('');
+            
+            if (commune === 'AUTRE') {
+                // Saisie libre commune
+                document.getElementById('communeLibreSection').classList.remove('hidden');
+                document.getElementById('rueSelectSection').classList.add('hidden');
+                document.getElementById('rueLibreSection').classList.remove('hidden');
+            } else if (commune) {
+                // Commune trouvée
+                document.getElementById('communeLibreSection').classList.add('hidden');
+                document.getElementById('rueSelectSection').classList.remove('hidden');
+                document.getElementById('rueLibreSection').classList.add('hidden');
+                
+                const rues = mission.rues_par_commune[commune] || [];
+                document.getElementById('rueSelect').innerHTML = '<option value="">-- Sélectionner --</option>' + 
+                    rues.map(r => `<option value="${r}">${r}</option>`).join('');
+            } else {
+                // Rien de sélectionné
+                document.getElementById('communeLibreSection').classList.add('hidden');
+                document.getElementById('rueSelectSection').classList.add('hidden');
+                document.getElementById('rueLibreSection').classList.add('hidden');
+            }
         }
 
         function addAddress() {
-            const commune = document.getElementById('communeSelect').value;
-            const rue = document.getElementById('rueSelect').value;
+            let commune = document.getElementById('communeSelect').value;
+            let rue = document.getElementById('rueSelect').value;
+            
+            // Gérer la saisie libre
+            if (commune === 'AUTRE') {
+                commune = document.getElementById('communeLibreInput').value.trim().toUpperCase();
+                rue = document.getElementById('rueLibreInput').value.trim().toUpperCase();
+            } else {
+                rue = rue || document.getElementById('rueLibreInput').value.trim().toUpperCase();
+            }
+            
             const numero = document.getElementById('numeroInput').value;
             const foyers = document.getElementById('foyersInput').value;
             const resultat = document.getElementById('resultatSelect').value;
@@ -511,8 +550,12 @@
             document.getElementById('civiliteSelect').value = '';
             document.getElementById('nomPersonneInput').value = '';
             document.getElementById('pasCommunicationCheck').checked = false;
+            document.getElementById('communeSelect').value = '';
+            document.getElementById('communeLibreInput').value = '';
+            document.getElementById('rueLibreInput').value = '';
             document.getElementById('malServiSection').classList.add('hidden');
             document.getElementById('photoPreview').style.display = 'none';
+            updateStreets(); // Réinitialiser l'affichage
         }
 
         function finishMission() {
