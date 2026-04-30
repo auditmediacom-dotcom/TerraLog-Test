@@ -21,8 +21,12 @@
         button.secondary:hover { background: #6a3f94; }
         button.share { background: #27ae60; }
         button.share:hover { background: #229954; }
+        button.admin { background: #e74c3c; }
+        button.admin:hover { background: #c0392b; }
         .hidden { display: none !important; }
         .address-item { background: #f5f5f5; padding: 12px; border-radius: 5px; margin-bottom: 8px; border-left: 4px solid #667eea; font-size: 13px; }
+        .mission-item { background: #f0f7ff; padding: 12px; border-radius: 5px; margin-bottom: 8px; border-left: 4px solid #667eea; display: flex; justify-content: space-between; align-items: center; }
+        .mission-item button { width: auto; padding: 5px 10px; font-size: 12px; margin: 0; }
         .photo-preview { max-width: 150px; max-height: 150px; margin-top: 10px; border-radius: 5px; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
@@ -34,14 +38,42 @@
 </head>
 <body>
     <div class="container">
+        <!-- Page Login -->
+        <div id="loginPage">
+            <h1>🔐 TerraLog - Admin</h1>
+            <div class="form-group">
+                <label>Mot de passe :</label>
+                <input type="password" id="passwordInput" placeholder="Entrez le mot de passe">
+            </div>
+            <button type="button" onclick="checkPassword()">Connexion</button>
+        </div>
+
+        <!-- Page Admin -->
+        <div id="adminPage" class="hidden">
+            <h1>⚙️ Administration</h1>
+            
+            <h2>📤 Importer un fichier Excel</h2>
+            <div class="form-group">
+                <label>Sélectionne un fichier Bornage :</label>
+                <input type="file" id="excelFile" accept=".xlsx,.xls">
+            </div>
+            <button type="button" onclick="importExcel()">📥 Importer</button>
+            
+            <h2>📋 Missions disponibles</h2>
+            <div id="missionsList"></div>
+            
+            <button type="button" class="admin" onclick="logout()">🔓 Déconnexion</button>
+        </div>
+
         <!-- Page Authentification -->
-        <div id="authPage">
+        <div id="authPage" class="hidden">
             <h1>📱 TerraLog</h1>
             <div class="form-group">
                 <label>Code Mission :</label>
                 <input type="text" id="codeInput" placeholder="Ex: 1234">
             </div>
             <button type="button" onclick="authenticateMission()">Accéder à ma mission</button>
+            <button type="button" class="admin" onclick="goToAdmin()">⚙️ Admin</button>
         </div>
 
         <!-- Page Configuration -->
@@ -68,6 +100,7 @@
                 <input type="number" id="semaineInput">
             </div>
             <button type="button" onclick="startMission()">Commencer la mission</button>
+            <button type="button" class="secondary" onclick="goBack()">🔙 Retour</button>
         </div>
 
         <!-- Page Saisie Terrain -->
@@ -89,7 +122,8 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
-        const missionsData = {
+        const ADMIN_PASSWORD = "AMC-25-04-26";
+        let missionsData = JSON.parse(localStorage.getItem('missionsData')) || {
             "1234": {"prenom":"Séverine","nom":"COUPRIE","client":"Sylvalliance","magasin":"Gognies Chaussée","semaine":"15","communes":["Gognies-Chaussée"],"rues_par_commune":{"Gognies-Chaussée":["RUE DE LA PAIX","RUE DES FLEURS","RUE DU COMMERCE"]}},
             "2345": {"prenom":"Séverine","nom":"COUPRIE","client":"Lidl Classique","magasin":"Mérignac","semaine":"16","communes":["Mérignac"],"rues_par_commune":{"Mérignac":["RUE DE LA REPUBLIQUE","RUE DE LA GARE","AVENUE DU GENERAL LECLERC"]}},
             "5678": {"prenom":"Séverine","nom":"COUPRIE","client":"Centrakor","magasin":"Malemort sur Corrèze","semaine":"16","communes":["Malemort-sur-Corrèze"],"rues_par_commune":{"Malemort-sur-Corrèze":["RUE PRINCIPALE","RUE DE L'ÉGLISE"]}},
@@ -103,12 +137,143 @@
         let missionInfo = {};
         let currentMissionCode = null;
 
+        function checkPassword() {
+            const password = document.getElementById('passwordInput').value;
+            if (password === ADMIN_PASSWORD) {
+                showPage('adminPage');
+                displayMissions();
+            } else {
+                alert('❌ Mot de passe incorrect');
+            }
+        }
+
+        function logout() {
+            document.getElementById('passwordInput').value = '';
+            showPage('loginPage');
+        }
+
+       function goToAdmin() {
+            showPage('loginPage');
+        }
+
         function showPage(pageId) {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('adminPage').classList.add('hidden');
             document.getElementById('authPage').classList.add('hidden');
             document.getElementById('missionPage').classList.add('hidden');
             document.getElementById('saisiePageParent').classList.add('hidden');
             document.getElementById('endPage').classList.add('hidden');
             document.getElementById(pageId).classList.remove('hidden');
+        }
+
+        function displayMissions() {
+            let html = '';
+            for (let code in missionsData) {
+                const mission = missionsData[code];
+                html += `<div class="mission-item">
+                    <div>
+                        <strong>${code}</strong> - ${mission.client} (${mission.magasin})
+                    </div>
+                    <button class="admin" onclick="deleteMission('${code}')">❌ Supprimer</button>
+                </div>`;
+            }
+            document.getElementById('missionsList').innerHTML = html || '<p>Aucune mission</p>';
+        }
+
+        function deleteMission(code) {
+            if (confirm(`Supprimer la mission ${code} ?`)) {
+                delete missionsData[code];
+                saveMissionsData();
+                displayMissions();
+            }
+        }
+
+        function importExcel() {
+            const file = document.getElementById('excelFile').files[0];
+            if (!file) {
+                alert('❌ Sélectionne un fichier');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const rows = XLSX.utils.sheet_to_json(sheet, {header: 1});
+
+                    // Demander les infos de la mission
+                    const code = prompt('Code mission (ex: 9999):');
+                    if (!code) return;
+
+                    const prenom = prompt('Prénom enquêteur:');
+                    if (!prenom) return;
+
+                    const nom = prompt('Nom enquêteur:');
+                    if (!nom) return;
+
+                    const client = prompt('Client:');
+                    if (!client) return;
+
+                    const magasin = prompt('Magasin:');
+                    if (!magasin) return;
+
+                    const semaine = prompt('Semaine:');
+                    if (!semaine) return;
+
+                    // Extraire communes et rues
+                    const communes = new Set();
+                    const rues_par_commune = {};
+
+                    for (let i = 1; i < rows.length; i++) {
+                        const row = rows[i];
+                        if (!row[2]) continue; // Colonne commune
+                        
+                        const commune = row[2].toString().toUpperCase().trim();
+                        const rue = row[3] ? row[3].toString().toUpperCase().trim() : '';
+
+                        if (commune && rue) {
+                            communes.add(commune);
+                            if (!rues_par_commune[commune]) {
+                                rues_par_commune[commune] = [];
+                            }
+                            if (!rues_par_commune[commune].includes(rue)) {
+                                rues_par_commune[commune].push(rue);
+                            }
+                        }
+                    }
+
+                    // Créer la mission
+                    missionsData[code] = {
+                        prenom,
+                        nom,
+                        client,
+                        magasin,
+                        semaine,
+                        communes: Array.from(communes).sort(),
+                        rues_par_commune: rues_par_commune
+                    };
+
+                    saveMissionsData();
+                    displayMissions();
+                    document.getElementById('excelFile').value = '';
+                    alert(`✅ Mission ${code} importée avec ${communes.size} commune(s)`);
+
+                } catch (error) {
+                    alert('❌ Erreur lors de la lecture du fichier: ' + error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function saveMissionsData() {
+            localStorage.setItem('missionsData', JSON.stringify(missionsData));
+        }
+
+        function goBack() {
+            showPage('authPage');
         }
 
         function authenticateMission() {
@@ -320,7 +485,6 @@
             });
             document.getElementById('addressList').innerHTML = html;
             
-            // Réinitialiser le formulaire
             document.getElementById('numeroInput').value = '';
             document.getElementById('sufixeInput').value = '';
             document.getElementById('habitatSelect').value = '';
@@ -382,42 +546,42 @@
             showPage('endPage');
         }
 
-     function shareReport() {
-    const data = [
-        ['Magasin', 'Numéros', 'Adresses', 'Codes Postal', 'Ville', 'Nombre de foyers', 'Civilité', 'Nom du résident', 'Réception document'],
-        ...currentAddresses.map(a => [
-            missionInfo.magasin,
-            a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero,
-            a.rue,
-            '',
-            a.commune,
-            a.foyers || '',
-            a.civilite || '',
-            a.nomPersonne || '',
-            a.resultat === 'Bien servi' ? 'SERVI' : a.resultat === 'Non servi' ? 'NON SERVI' : 'MAL SERVI'
-        ])
-    ];
-    
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Feuil1');
-    ws['!cols'] = [{wch:25},{wch:12},{wch:35},{wch:15},{wch:25},{wch:15},{wch:12},{wch:25},{wch:20}];
-    
-    const fileName = `Rapport_${missionInfo.magasin}_s${missionInfo.semaine}.xlsx`;
-    
-    // Pour Android et iPhone
-    const blob = XLSX.write(wb, {bookType: 'xlsx', type: 'blob'});
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-    
-    alert('✅ Fichier prêt à partager! Appuie et maintiens le fichier pour le partager par Email, WhatsApp, Google Drive, etc.');
-}
+        function shareReport() {
+            const data = [
+                ['Magasin', 'Numéros', 'Adresses', 'Codes Postal', 'Ville', 'Nombre de foyers', 'Civilité', 'Nom du résident', 'Réception document'],
+                ...currentAddresses.map(a => [
+                    missionInfo.magasin,
+                    a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero,
+                    a.rue,
+                    '',
+                    a.commune,
+                    a.foyers || '',
+                    a.civilite || '',
+                    a.nomPersonne || '',
+                    a.resultat === 'Bien servi' ? 'SERVI' : a.resultat === 'Non servi' ? 'NON SERVI' : 'MAL SERVI'
+                ])
+            ];
+            
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Feuil1');
+            ws['!cols'] = [{wch:25},{wch:12},{wch:35},{wch:15},{wch:25},{wch:15},{wch:12},{wch:25},{wch:20}];
+            
+            const fileName = `Rapport_${missionInfo.magasin}_s${missionInfo.semaine}.xlsx`;
+            
+            const blob = XLSX.write(wb, {bookType: 'xlsx', type: 'blob'});
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            alert('✅ Fichier prêt à partager! Appuie et maintiens le fichier pour le partager par Email, WhatsApp, Google Drive, etc.');
+        }
+
         function downloadReport() {
             const data = [
                 ['Magasin', 'Numéros', 'Adresses', 'Codes Postal', 'Ville', 'Nombre de foyers', 'Civilité', 'Nom du résident', 'Réception document'],
