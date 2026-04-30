@@ -117,9 +117,9 @@
             <h1>Fin de journée</h1>
             <div id="reportContent"></div>
             <div class="button-group-3">
-                <button type="button" class="email" onclick="sendByEmail()">📧 Email</button>
-                <button type="button" class="share" onclick="shareReport()">📤 Partager</button>
                 <button type="button" onclick="downloadReport()">💾 Télécharger</button>
+                <button type="button" class="share" onclick="shareReport()">📤 Partager</button>
+                <button type="button" class="email" onclick="sendByEmail()">📧 Email</button>
             </div>
             <button type="button" class="secondary" onclick="location.reload()">🔄 Nouvelle mission</button>
         </div>
@@ -562,7 +562,7 @@
 
         function generateExcelFile() {
             const data = [
-                ['Magasin', 'Numéros', 'Adresses', 'Codes Postal', 'Ville', 'Nombre de foyers', 'Civilité', 'Nom du résident', 'Pas de communication', 'Réception document'],
+                ['Magasin', 'Numéros', 'Adresses', 'Codes Postal', 'Ville', 'Nombre de foyers', 'Civilité', 'Nom du résident', 'Réception document'],
                 ...currentAddresses.map(a => [
                     missionInfo.magasin,
                     a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero,
@@ -571,8 +571,7 @@
                     a.commune,
                     a.foyers || '',
                     a.civilite || '',
-                    a.nomPersonne || '',
-                    a.pasCommunication ? 'OUI' : 'NON',
+                    a.pasCommunication ? 'Refus nom' : (a.nomPersonne || ''),
                     a.resultat === 'Bien servi' ? 'SERVI' : a.resultat === 'Non servi' ? 'NON SERVI' : 'MAL SERVI'
                 ])
             ];
@@ -580,7 +579,7 @@
             const ws = XLSX.utils.aoa_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Feuil1');
-            ws['!cols'] = [{wch:25},{wch:12},{wch:35},{wch:15},{wch:25},{wch:15},{wch:12},{wch:25},{wch:20},{wch:20}];
+            ws['!cols'] = [{wch:25},{wch:12},{wch:35},{wch:15},{wch:25},{wch:15},{wch:12},{wch:25},{wch:20}];
             
             return { wb: wb, fileName: `Rapport_${missionInfo.magasin}_s${missionInfo.semaine}.xlsx` };
         }
