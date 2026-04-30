@@ -38,8 +38,8 @@
 </head>
 <body>
     <div class="container">
-        <!-- Page Login -->
-        <div id="loginPage">
+        <!-- Page Authentification Mission -->
+        <div id="authPage">
             <h1>🔐 TerraLog - Admin</h1>
             <div class="form-group">
                 <label>Mot de passe :</label>
@@ -48,8 +48,8 @@
             <button type="button" onclick="checkPassword()">Connexion</button>
         </div>
 
-        <!-- Page Admin -->
-        <div id="adminPage" class="hidden">
+        <!-- Page Login Admin -->
+        <div id="loginPage" class="hidden">
             <h1>⚙️ Administration</h1>
             
             <h2>📤 Importer un fichier Excel</h2>
@@ -152,8 +152,10 @@
             showPage('loginPage');
         }
 
-       function goToAdmin() {
-            showPage('loginPage');
+    function goToAdmin() {
+    showPage('loginPage');
+    document.getElementById('passwordInput').focus();
+}
         }
 
         function showPage(pageId) {
