@@ -394,6 +394,12 @@
                         <option value="Mal servi">⚠️ Mal servi</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="vuCheck">
+                        <label style="margin:0;">Vu en boîte aux lettres</label>
+                    </div>
+                </div>
                 
                 <div id="malServiSection" class="hidden">
                     <div class="form-group">
@@ -412,10 +418,11 @@
                         <input type="file" id="photoInput" accept="image/*" onchange="previewPhoto()">
                         <img id="photoPreview" class="photo-preview" style="display:none;">
                     </div>
-                    <div class="form-group">
-                        <label>Commentaires :</label>
-                        <textarea id="commentairesInput" rows="3" placeholder="Commentaires..."></textarea>
-                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Observations (optionnel) :</label>
+                    <textarea id="observationsInput" rows="3" placeholder="Notes supplémentaires..."></textarea>
                 </div>
                 
                 <h2>Contact</h2>
@@ -524,9 +531,10 @@
                 foyers: foyers,
                 acces: document.getElementById('accesSelect').value,
                 resultat: resultat,
+                vu: document.getElementById('vuCheck').checked,
                 typemalservi: document.getElementById('typemalservSelect').value || '',
                 photo: document.getElementById('photoInput').files[0] || null,
-                commentaires: document.getElementById('commentairesInput').value || '',
+                observations: document.getElementById('observationsInput').value || '',
                 civilite: document.getElementById('civiliteSelect').value,
                 nomPersonne: document.getElementById('nomPersonneInput').value,
                 pasCommunication: document.getElementById('pasCommunicationCheck').checked
@@ -549,7 +557,8 @@
             document.getElementById('resultatSelect').value = '';
             document.getElementById('typemalservSelect').value = '';
             document.getElementById('photoInput').value = '';
-            document.getElementById('commentairesInput').value = '';
+            document.getElementById('observationsInput').value = '';
+            document.getElementById('vuCheck').checked = false;
             document.getElementById('civiliteSelect').value = '';
             document.getElementById('nomPersonneInput').value = '';
             document.getElementById('pasCommunicationCheck').checked = false;
@@ -583,8 +592,10 @@
                         <th>Commune</th>
                         <th>Foyers</th>
                         <th>Accès</th>
+                        <th>Vu</th>
                         <th>Civilité</th>
                         <th>Nom</th>
+                        <th>Observations</th>
                         <th>Résultat</th>
                     </tr>`;
             
@@ -597,8 +608,10 @@
                     <td>${a.commune}</td>
                     <td>${a.foyers || ''}</td>
                     <td>${a.acces || ''}</td>
+                    <td>${a.vu ? 'OUI' : 'NON'}</td>
                     <td>${a.civilite || ''}</td>
                     <td>${a.nomPersonne || ''}</td>
+                    <td>${a.observations || ''}</td>
                     <td>${a.resultat}</td>
                 </tr>`;
             });
@@ -610,7 +623,7 @@
 
         function generateExcelFile() {
             const data = [
-                ['Magasin', 'Numéros', 'Adresses', 'Ville', 'Nombre de foyers', 'Accès', 'Civilité', 'Nom du résident', 'Réception document'],
+                ['Magasin', 'Numéros', 'Adresses', 'Ville', 'Nombre de foyers', 'Accès', 'Vu', 'Civilité', 'Nom du résident', 'Observations', 'Réception document'],
                 ...currentAddresses.map(a => [
                     missionInfo.magasin,
                     a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero,
@@ -618,8 +631,10 @@
                     a.commune,
                     a.foyers || '',
                     a.acces || '',
+                    a.vu ? 'OUI' : 'NON',
                     a.civilite || '',
                     a.pasCommunication ? 'Refus nom' : (a.nomPersonne || ''),
+                    a.observations || '',
                     a.resultat === 'Bien servi' ? 'SERVI' : a.resultat === 'Non servi' ? 'NON SERVI' : 'MAL SERVI'
                 ])
             ];
@@ -627,7 +642,7 @@
             const ws = XLSX.utils.aoa_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Feuil1');
-            ws['!cols'] = [{wch:25},{wch:12},{wch:35},{wch:25},{wch:15},{wch:12},{wch:12},{wch:25},{wch:20}];
+            ws['!cols'] = [{wch:25},{wch:12},{wch:35},{wch:25},{wch:15},{wch:12},{wch:8},{wch:12},{wch:25},{wch:30},{wch:20}];
             
             return { wb: wb, fileName: `Rapport_${missionInfo.magasin}_s${missionInfo.semaine}.xlsx` };
         }
