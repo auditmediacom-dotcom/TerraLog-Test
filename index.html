@@ -520,6 +520,11 @@
             const commune = document.getElementById('communeSelect').value;
             const mission = missionsData[currentMissionCode];
             
+            // Réinitialiser le champ de recherche
+            if (document.getElementById('rueSearch')) {
+                document.getElementById('rueSearch').value = '';
+            }
+            
             if (commune === 'AUTRE') {
                 // Saisie libre commune
                 document.getElementById('communeLibreSection').classList.remove('hidden');
@@ -534,9 +539,6 @@
                 const rues = mission.rues_par_commune[commune] || [];
                 document.getElementById('rueSelect').innerHTML = '<option value="">-- Sélectionner --</option>' + 
                     rues.map(r => `<option value="${r}">${r}</option>`).join('');
-                
-                // Réinitialiser la recherche
-                document.getElementById('rueSearch').value = '';
             } else {
                 // Rien de sélectionné
                 document.getElementById('communeLibreSection').classList.add('hidden');
@@ -549,7 +551,7 @@
             const commune = document.getElementById('communeSelect').value;
             if (!commune || commune === 'AUTRE') return;
             
-            const searchText = document.getElementById('rueSearch').value.toUpperCase();
+            const searchText = document.getElementById('rueSearch').value.toUpperCase().trim();
             const mission = missionsData[currentMissionCode];
             const rues = mission.rues_par_commune[commune] || [];
             
@@ -557,11 +559,15 @@
             if (searchText === '') {
                 filteredRues = rues;
             } else {
-                filteredRues = rues.filter(r => r.startsWith(searchText));
+                filteredRues = rues.filter(r => r.toUpperCase().startsWith(searchText));
             }
             
-            document.getElementById('rueSelect').innerHTML = '<option value="">-- Sélectionner --</option>' + 
-                filteredRues.map(r => `<option value="${r}">${r}</option>`).join('');
+            if (filteredRues.length > 0) {
+                document.getElementById('rueSelect').innerHTML = '<option value="">-- Sélectionner --</option>' + 
+                    filteredRues.map(r => `<option value="${r}">${r}</option>`).join('');
+            } else {
+                document.getElementById('rueSelect').innerHTML = '<option value="">-- Aucune rue trouvée --</option>';
+            }
         }
 
         function updateAddressList() {
