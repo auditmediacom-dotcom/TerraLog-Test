@@ -149,6 +149,34 @@
         let missionInfo = {};
         let currentMissionCode = null;
 
+        // Sauvegarder les adresses en localStorage
+        function saveAddressesToStorage() {
+            const key = `mission_${currentMissionCode}_addresses`;
+            localStorage.setItem(key, JSON.stringify(currentAddresses));
+        }
+
+        // Charger les adresses depuis localStorage
+        function loadAddressesFromStorage() {
+            const key = `mission_${currentMissionCode}_addresses`;
+            const saved = localStorage.getItem(key);
+            if (saved) {
+                try {
+                    currentAddresses = JSON.parse(saved);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        // Supprimer les données sauvegardées d'une mission
+        function clearSavedAddresses() {
+            const key = `mission_${currentMissionCode}_addresses`;
+            localStorage.removeItem(key);
+            currentAddresses = [];
+        }
+
         function showPage(pageId) {
             document.getElementById('authPage').classList.add('hidden');
             document.getElementById('loginPage').classList.add('hidden');
@@ -324,7 +352,11 @@
             
             const mission = missionsData[currentMissionCode];
             let saisieHTML = `<h1>Saisie Terrain</h1>
-                <h2>Localisation</h2>
+                <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 12px;">
+                    <strong>💾 Auto-sauvegarde activée</strong> - Vos adresses sont sauvegardées automatiquement
+                </div>`;
+            
+            saisieHTML += `<h2>Localisation</h2>
                 <div class="form-group">
                     <label>Commune :</label>
                     <select id="communeSelect" onchange="updateStreets()">
@@ -341,6 +373,7 @@
                 </div>
                 <div class="form-group">
                     <label>Rue :</label>
+                    <input type="text" id="rueSearch" placeholder="Tapez les premières lettres..." onkeyup="filterRues()" style="margin-bottom: 8px;">
                     <div id="rueSelectSection">
                         <select id="rueSelect">
                             <option value="">-- Sélectionner --</option>
@@ -451,6 +484,12 @@
                 <div id="addressList"></div>`;
             
             document.getElementById('saisiePageContent').innerHTML = saisieHTML;
+            
+            // Charger les adresses sauvegardées
+            if (loadAddressesFromStorage()) {
+                updateAddressList();
+            }
+            
             showPage('saisiePageParent');
         }
 
@@ -495,12 +534,43 @@
                 const rues = mission.rues_par_commune[commune] || [];
                 document.getElementById('rueSelect').innerHTML = '<option value="">-- Sélectionner --</option>' + 
                     rues.map(r => `<option value="${r}">${r}</option>`).join('');
+                
+                // Réinitialiser la recherche
+                document.getElementById('rueSearch').value = '';
             } else {
                 // Rien de sélectionné
                 document.getElementById('communeLibreSection').classList.add('hidden');
                 document.getElementById('rueSelectSection').classList.add('hidden');
                 document.getElementById('rueLibreSection').classList.add('hidden');
             }
+        }
+
+        function filterRues() {
+            const commune = document.getElementById('communeSelect').value;
+            if (!commune || commune === 'AUTRE') return;
+            
+            const searchText = document.getElementById('rueSearch').value.toUpperCase();
+            const mission = missionsData[currentMissionCode];
+            const rues = mission.rues_par_commune[commune] || [];
+            
+            let filteredRues;
+            if (searchText === '') {
+                filteredRues = rues;
+            } else {
+                filteredRues = rues.filter(r => r.startsWith(searchText));
+            }
+            
+            document.getElementById('rueSelect').innerHTML = '<option value="">-- Sélectionner --</option>' + 
+                filteredRues.map(r => `<option value="${r}">${r}</option>`).join('');
+        }
+
+        function updateAddressList() {
+            let html = '<h3>Adresses saisies :</h3>';
+            currentAddresses.forEach((a, idx) => {
+                const numeroComplet = a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero;
+                html += `<div class="address-item">${numeroComplet} ${a.rue} - ${a.commune} <strong>${a.resultat}</strong></div>`;
+            });
+            document.getElementById('addressList').innerHTML = html;
         }
 
         function addAddress() {
@@ -542,12 +612,8 @@
 
             currentAddresses.push(addr);
             
-            let html = '<h3>Adresses saisies :</h3>';
-            currentAddresses.forEach((a, idx) => {
-                const numeroComplet = a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero;
-                html += `<div class="address-item">${numeroComplet} ${a.rue} - ${a.commune} <strong>${a.resultat}</strong></div>`;
-            });
-            document.getElementById('addressList').innerHTML = html;
+            saveAddressesToStorage();
+            updateAddressList();
             
             document.getElementById('numeroInput').value = '';
             document.getElementById('sufixeInput').value = '';
@@ -618,6 +684,7 @@
             reportHTML += '</table>';
             
             document.getElementById('reportContent').innerHTML = reportHTML;
+            clearSavedAddresses();
             showPage('endPage');
         }
 
