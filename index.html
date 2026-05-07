@@ -192,6 +192,10 @@
         }
 
         function goBackToAuth() {
+            clearSavedAddresses();
+            currentAddresses = [];
+            missionInfo = {};
+            currentMissionCode = null;
             showPage('authPage');
         }
 
@@ -690,7 +694,6 @@
             reportHTML += '</table>';
             
             document.getElementById('reportContent').innerHTML = reportHTML;
-            clearSavedAddresses();
             showPage('endPage');
         }
 
