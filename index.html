@@ -536,10 +536,8 @@
             
             document.getElementById('saisiePageContent').innerHTML = saisieHTML;
             
-            // Charger les adresses sauvegardées
-            if (loadAddressesFromStorage()) {
-                updateAddressList();
-            }
+            // Charger les adresses sauvegardées (pas de liste à afficher)
+            loadAddressesFromStorage();
             
             showPage('saisiePageParent');
         }
@@ -671,7 +669,6 @@
             
             saveAddressesToStorage();
             sendToGoogleSheet(addr);
-            updateAddressList();
             
             document.getElementById('numeroInput').value = '';
             document.getElementById('sufixeInput').value = '';
