@@ -122,7 +122,10 @@
                 <button type="button" class="share" onclick="shareReport()">📤 Partager</button>
                 <button type="button" class="email" onclick="sendByEmail()">📧 Email</button>
             </div>
-            <button type="button" class="secondary" onclick="location.reload()">🔄 Nouvelle mission</button>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 15px; text-align: center;">
+                <p style="color: #666; margin: 0 0 15px 0;">✅ Si c'est ok pour vous, vous pouvez réinitialiser les adresses saisies</p>
+                <button type="button" class="primary" onclick="resetMission()" style="width: 100%;">🔄 Réinitialiser</button>
+            </div>
         </div>
     </div>
 
@@ -529,8 +532,7 @@
                 </div>
                 
                 <button type="button" onclick="addAddress()">➕ Ajouter l'adresse</button>
-                <button type="button" class="secondary" onclick="finishMission()">✅ Fin de journée</button>
-                <div id="addressList"></div>`;
+                <button type="button" class="secondary" onclick="finishMission()">✅ Fin de journée</button>`;
             
             document.getElementById('saisiePageContent').innerHTML = saisieHTML;
             
@@ -741,6 +743,15 @@
             
             document.getElementById('reportContent').innerHTML = reportHTML;
             showPage('endPage');
+        }
+
+        function resetMission() {
+            clearSavedAddresses();
+            currentAddresses = [];
+            missionInfo = {};
+            currentMissionCode = null;
+            addressesSentCount = 0;
+            showPage('authPage');
         }
 
         function generateExcelFile() {
