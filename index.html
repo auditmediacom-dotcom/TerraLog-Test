@@ -148,8 +148,47 @@
         let currentAddresses = [];
         let missionInfo = {};
         let currentMissionCode = null;
+        let addressesSentCount = 0;
+        
+        // URL du webhook Google Apps Script
+        const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycby8Z8PDYlhKWuaSgjTw17L9nGCffOLSY6ZODngr4Fu-t7jMM-2HkX_7gclFO1x_vqkv/exec";
 
-        // Sauvegarder les adresses en localStorage
+        // Envoyer l'adresse au Google Sheet
+        function sendToGoogleSheet(addr) {
+            const payload = {
+                client: missionInfo.client,
+                magasin: missionInfo.magasin,
+                numero: addr.suffixe ? `${addr.numero} ${addr.suffixe}` : addr.numero,
+                rue: addr.rue,
+                commune: addr.commune,
+                foyers: addr.foyers,
+                resultat: addr.resultat,
+                typemalservi: addr.typemalservi,
+                civilite: addr.civilite,
+                nomPersonne: addr.nomPersonne,
+                pasCommunication: addr.pasCommunication
+            };
+            
+            fetch(GOOGLE_SHEET_WEBHOOK, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    addressesSentCount = data.totalRows;
+                    updateSentCounter();
+                }
+            })
+            .catch(error => console.log('Envoi échoué (hors ligne ok):', error));
+        }
+        function updateSentCounter() {
+            const counter = document.getElementById('sentCounter');
+            if (counter) {
+                counter.textContent = addressesSentCount;
+            }
+        }
+
         function saveAddressesToStorage() {
             const key = `mission_${currentMissionCode}_addresses`;
             localStorage.setItem(key, JSON.stringify(currentAddresses));
@@ -354,10 +393,16 @@
                 semaine: semaine
             };
             
+            addressesSentCount = 0;
+            
             const mission = missionsData[currentMissionCode];
             let saisieHTML = `<h1>Saisie Terrain</h1>
                 <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 12px;">
                     <strong>💾 Auto-sauvegarde activée</strong> - Vos adresses sont sauvegardées automatiquement
+                </div>
+                <div style="background: #d4edda; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <strong>📤 Envoi au serveur</strong>
+                    <span style="background: #28a745; color: white; padding: 5px 10px; border-radius: 3px; font-size: 14px; font-weight: bold;">Adresses envoyées: <span id="sentCounter">0</span></span>
                 </div>`;
             
             saisieHTML += `<h2>Localisation</h2>
@@ -623,6 +668,7 @@
             currentAddresses.push(addr);
             
             saveAddressesToStorage();
+            sendToGoogleSheet(addr);
             updateAddressList();
             
             document.getElementById('numeroInput').value = '';
