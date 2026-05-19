@@ -161,6 +161,7 @@
             const payload = {
                 client: missionInfo.client,
                 magasin: missionInfo.magasin,
+                enqueteur: missionInfo.prenom + " " + missionInfo.nom,
                 numero: addr.suffixe ? `${addr.numero} ${addr.suffixe}` : addr.numero,
                 rue: addr.rue,
                 commune: addr.commune,
