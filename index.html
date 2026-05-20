@@ -172,7 +172,9 @@
                 civilite: addr.civilite,
                 nomPersonne: addr.nomPersonne,
                 pasCommunication: addr.pasCommunication
-            };
+                };
+
+                console.log("Payload envoyé:", payload);           
             
             fetch(GOOGLE_SHEET_WEBHOOK, {
                 method: 'POST',
