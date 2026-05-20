@@ -147,7 +147,6 @@
         };
         
         let localMissions = {};
-
         let currentAddresses = [];
         let missionInfo = {};
         let currentMissionCode = null;
@@ -156,7 +155,7 @@
         // URL du webhook Google Apps Script
         const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbxaUEW_Oi9kfzpw6K27JiMe8d0Knnr7rT9Ysciqiicne7b0zc_oxP_g8fj2UkdpIJr8/exec";
 
-        // Envoyer l'adresse au Google Sheet
+        // *** CORRECTION CLÉ : vu envoyé en string "OUI"/"NON" ***
         function sendToGoogleSheet(addr) {
             const payload = {
                 client: missionInfo.client,
@@ -172,8 +171,7 @@
                 civilite: addr.civilite,
                 nomPersonne: addr.nomPersonne,
                 pasCommunication: addr.pasCommunication
-                };
-                      
+            };
             
             fetch(GOOGLE_SHEET_WEBHOOK, {
                 method: 'POST',
@@ -188,6 +186,7 @@
             })
             .catch(error => console.log('Envoi échoué (hors ligne ok):', error));
         }
+
         function updateSentCounter() {
             const counter = document.getElementById('sentCounter');
             if (counter) {
@@ -200,7 +199,6 @@
             localStorage.setItem(key, JSON.stringify(currentAddresses));
         }
 
-        // Charger les adresses depuis localStorage
         function loadAddressesFromStorage() {
             const key = `mission_${currentMissionCode}_addresses`;
             const saved = localStorage.getItem(key);
@@ -215,7 +213,6 @@
             return false;
         }
 
-        // Supprimer les données sauvegardées d'une mission
         function clearSavedAddresses() {
             const key = `mission_${currentMissionCode}_addresses`;
             localStorage.removeItem(key);
@@ -232,9 +229,7 @@
             document.getElementById(pageId).classList.remove('hidden');
         }
 
-        function goToAdmin() {
-            showPage('loginPage');
-        }
+        function goToAdmin() { showPage('loginPage'); }
 
         function goBackToAuth() {
             clearSavedAddresses();
@@ -244,9 +239,7 @@
             showPage('authPage');
         }
 
-        function backToAuth() {
-            showPage('authPage');
-        }
+        function backToAuth() { showPage('authPage'); }
 
         function checkPassword() {
             const password = document.getElementById('passwordInput').value;
@@ -259,18 +252,14 @@
             }
         }
 
-        function logout() {
-            showPage('authPage');
-        }
+        function logout() { showPage('authPage'); }
 
         function displayMissions() {
             let html = '';
             for (let code in missionsData) {
                 const mission = missionsData[code];
                 html += `<div class="mission-item">
-                    <div>
-                        <strong>${code}</strong> - ${mission.client} (${mission.magasin})
-                    </div>
+                    <div><strong>${code}</strong> - ${mission.client} (${mission.magasin})</div>
                     <button class="admin" onclick="deleteMission('${code}')">❌ Supprimer</button>
                 </div>`;
             }
@@ -290,10 +279,7 @@
 
         function importExcel() {
             const file = document.getElementById('excelFile').files[0];
-            if (!file) {
-                alert('❌ Sélectionne un fichier');
-                return;
-            }
+            if (!file) { alert('❌ Sélectionne un fichier'); return; }
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -306,19 +292,14 @@
 
                     const code = prompt('Code mission (ex: 9999):');
                     if (!code) return;
-
                     const prenom = prompt('Prénom enquêteur:');
                     if (!prenom) return;
-
                     const nom = prompt('Nom enquêteur:');
                     if (!nom) return;
-
                     const client = prompt('Client:');
                     if (!client) return;
-
                     const magasin = prompt('Magasin:');
                     if (!magasin) return;
-
                     const semaine = prompt('Semaine:');
                     if (!semaine) return;
 
@@ -328,40 +309,22 @@
                     for (let i = 1; i < rows.length; i++) {
                         const row = rows[i];
                         if (!row[2]) continue;
-                        
                         const commune = row[2].toString().toUpperCase().trim();
                         const rue = row[3] ? row[3].toString().toUpperCase().trim() : '';
-
                         if (commune && rue) {
                             communes.add(commune);
-                            if (!rues_par_commune[commune]) {
-                                rues_par_commune[commune] = [];
-                            }
-                            if (!rues_par_commune[commune].includes(rue)) {
-                                rues_par_commune[commune].push(rue);
-                            }
+                            if (!rues_par_commune[commune]) rues_par_commune[commune] = [];
+                            if (!rues_par_commune[commune].includes(rue)) rues_par_commune[commune].push(rue);
                         }
                     }
 
-                    const newMission = {
-                        prenom,
-                        nom,
-                        client,
-                        magasin,
-                        semaine,
-                        communes: Array.from(communes).sort(),
-                        rues_par_commune: rues_par_commune
-                    };
-
+                    const newMission = { prenom, nom, client, magasin, semaine, communes: Array.from(communes).sort(), rues_par_commune };
                     localMissions[code] = newMission;
                     localStorage.setItem('localMissions', JSON.stringify(localMissions));
-                    
                     missionsData[code] = newMission;
-                    
                     displayMissions();
                     document.getElementById('excelFile').value = '';
                     alert(`✅ Mission ${code} importée avec ${communes.size} commune(s)`);
-
                 } catch (error) {
                     alert(`❌ Erreur lors de la lecture du fichier: ${error.message}`);
                 }
@@ -371,11 +334,7 @@
 
         function authenticateMission() {
             const code = document.getElementById('codeInput').value.trim();
-            if (!missionsData[code]) {
-                alert('❌ Code mission invalide');
-                return;
-            }
-            
+            if (!missionsData[code]) { alert('❌ Code mission invalide'); return; }
             currentMissionCode = code;
             const mission = missionsData[code];
             document.getElementById('nomInput').value = mission.nom;
@@ -384,7 +343,6 @@
             document.getElementById('magasinInput').value = mission.magasin;
             document.getElementById('semaineInput').value = mission.semaine;
             document.getElementById('codeInput').value = '';
-            
             showPage('missionPage');
         }
 
@@ -400,8 +358,8 @@
             };
             
             addressesSentCount = 0;
-            
             const mission = missionsData[currentMissionCode];
+
             let saisieHTML = `<h1>Saisie Terrain</h1>
                 <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 12px;">
                     <strong>💾 Auto-sauvegarde activée</strong> - Vos adresses sont sauvegardées automatiquement
@@ -538,10 +496,7 @@
                 <button type="button" class="secondary" onclick="finishMission()">✅ Fin de journée</button>`;
             
             document.getElementById('saisiePageContent').innerHTML = saisieHTML;
-            
-            // Charger les adresses sauvegardées (pas de liste à afficher)
             loadAddressesFromStorage();
-            
             showPage('saisiePageParent');
         }
 
@@ -571,28 +526,21 @@
         function updateStreets() {
             const commune = document.getElementById('communeSelect').value;
             const mission = missionsData[currentMissionCode];
-            
-            // Réinitialiser le champ de recherche
             if (document.getElementById('rueSearch')) {
                 document.getElementById('rueSearch').value = '';
             }
-            
             if (commune === 'AUTRE') {
-                // Saisie libre commune
                 document.getElementById('communeLibreSection').classList.remove('hidden');
                 document.getElementById('rueSelectSection').classList.add('hidden');
                 document.getElementById('rueLibreSection').classList.remove('hidden');
             } else if (commune) {
-                // Commune trouvée
                 document.getElementById('communeLibreSection').classList.add('hidden');
                 document.getElementById('rueSelectSection').classList.remove('hidden');
                 document.getElementById('rueLibreSection').classList.add('hidden');
-                
                 const rues = mission.rues_par_commune[commune] || [];
                 document.getElementById('rueSelect').innerHTML = '<option value="">-- Sélectionner --</option>' + 
                     rues.map(r => `<option value="${r}">${r}</option>`).join('');
             } else {
-                // Rien de sélectionné
                 document.getElementById('communeLibreSection').classList.add('hidden');
                 document.getElementById('rueSelectSection').classList.add('hidden');
                 document.getElementById('rueLibreSection').classList.add('hidden');
@@ -602,18 +550,10 @@
         function filterRues() {
             const commune = document.getElementById('communeSelect').value;
             if (!commune || commune === 'AUTRE') return;
-            
             const searchText = document.getElementById('rueSearch').value.toUpperCase().trim();
             const mission = missionsData[currentMissionCode];
             const rues = mission.rues_par_commune[commune] || [];
-            
-            let filteredRues;
-            if (searchText === '') {
-                filteredRues = rues;
-            } else {
-                filteredRues = rues.filter(r => r.toUpperCase().startsWith(searchText));
-            }
-            
+            let filteredRues = searchText === '' ? rues : rues.filter(r => r.toUpperCase().startsWith(searchText));
             if (filteredRues.length > 0) {
                 document.getElementById('rueSelect').innerHTML = '<option value="">-- Sélectionner --</option>' + 
                     filteredRues.map(r => `<option value="${r}">${r}</option>`).join('');
@@ -622,20 +562,10 @@
             }
         }
 
-        function updateAddressList() {
-            let html = '<h3>Adresses saisies :</h3>';
-            currentAddresses.forEach((a, idx) => {
-                const numeroComplet = a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero;
-                html += `<div class="address-item">${numeroComplet} ${a.rue} - ${a.commune} <strong>${a.resultat}</strong></div>`;
-            });
-            document.getElementById('addressList').innerHTML = html;
-        }
-
         function addAddress() {
             let commune = document.getElementById('communeSelect').value;
             let rue = document.getElementById('rueSelect').value;
             
-            // Gérer la saisie libre
             if (commune === 'AUTRE') {
                 commune = document.getElementById('communeLibreInput').value.trim().toUpperCase();
                 rue = document.getElementById('rueLibreInput').value.trim().toUpperCase();
@@ -669,10 +599,10 @@
             };
 
             currentAddresses.push(addr);
-            
             saveAddressesToStorage();
             sendToGoogleSheet(addr);
             
+            // Reset des champs
             document.getElementById('numeroInput').value = '';
             document.getElementById('sufixeInput').value = '';
             document.getElementById('habitatSelect').value = '';
@@ -691,17 +621,13 @@
             document.getElementById('rueLibreInput').value = '';
             document.getElementById('malServiSection').classList.add('hidden');
             document.getElementById('photoPreview').style.display = 'none';
-            updateStreets(); // Réinitialiser l'affichage
+            updateStreets();
         }
 
         function finishMission() {
             const secteurs = prompt('Nombre de secteurs réalisés :');
             if (secteurs === null) return;
-            
-            if (currentAddresses.length === 0) {
-                alert('❌ Aucune adresse saisie');
-                return;
-            }
+            if (currentAddresses.length === 0) { alert('❌ Aucune adresse saisie'); return; }
 
             let reportHTML = `<p><strong>Mission:</strong> ${missionInfo.magasin}</p>
                 <p><strong>Enquêtrice:</strong> ${missionInfo.prenom} ${missionInfo.nom}</p>
@@ -710,17 +636,9 @@
                 <p><strong>Adresses saisies:</strong> ${currentAddresses.length}</p>
                 <table>
                     <tr>
-                        <th>Magasin</th>
-                        <th>Numéro</th>
-                        <th>Rue</th>
-                        <th>Commune</th>
-                        <th>Foyers</th>
-                        <th>Accès</th>
-                        <th>Vu</th>
-                        <th>Civilité</th>
-                        <th>Nom</th>
-                        <th>Observations</th>
-                        <th>Résultat</th>
+                        <th>Magasin</th><th>Numéro</th><th>Rue</th><th>Commune</th>
+                        <th>Foyers</th><th>Accès</th><th>Vu</th><th>Civilité</th>
+                        <th>Nom</th><th>Observations</th><th>Résultat</th>
                     </tr>`;
             
             currentAddresses.forEach(a => {
@@ -776,22 +694,15 @@
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Feuil1');
             ws['!cols'] = [{wch:25},{wch:12},{wch:35},{wch:25},{wch:15},{wch:12},{wch:8},{wch:12},{wch:25},{wch:30},{wch:20}];
-            
             return { wb: wb, fileName: `Rapport_${missionInfo.magasin}_s${missionInfo.semaine}.xlsx` };
         }
 
         function sendByEmail() {
             const { wb, fileName } = generateExcelFile();
-            
             const subject = `Compte rendu ${missionInfo.client} - ${missionInfo.magasin} - Semaine ${missionInfo.semaine}`;
             const body = `Bonjour,\n\nVeuillez trouver en pièce jointe le compte rendu de la mission.\n\nCordialement,\n${missionInfo.prenom} ${missionInfo.nom}`;
-            
             const mailtoLink = `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            
-            // Télécharger d'abord le fichier
             XLSX.writeFile(wb, fileName);
-            
-            // Puis ouvrir le client email
             setTimeout(() => {
                 window.location.href = mailtoLink;
                 alert(`✅ Fichier téléchargé ! Joignez-le au mail qui va s'ouvrir.\n\nObjet pré-rempli: "${subject}"`);
@@ -809,7 +720,6 @@
             XLSX.writeFile(wb, fileName);
         }
 
-        // Charger les missions locales au démarrage
         window.addEventListener('load', function() {
             localMissions = JSON.parse(localStorage.getItem('localMissions')) || {};
             missionsData = { ...missionsData, ...localMissions };
