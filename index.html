@@ -41,7 +41,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- Page Accueil Enquêteur -->
         <div id="authPage">
             <img src="logo-amc.jpg" alt="AMC Logo" style="max-width: 200px; height: auto; margin: 0 auto 20px; display: block;">
             <h1>📱 TerraLog</h1>
@@ -53,7 +52,6 @@
             <button type="button" class="admin" onclick="goToAdmin()">⚙️ Admin</button>
         </div>
 
-        <!-- Page Login Admin -->
         <div id="loginPage" class="hidden">
             <h1>🔐 TerraLog - Admin</h1>
             <div class="form-group">
@@ -64,56 +62,34 @@
             <button type="button" class="secondary" onclick="goBackToAuth()">🔙 Retour</button>
         </div>
 
-        <!-- Page Admin Panel -->
         <div id="adminPage" class="hidden">
             <h1>⚙️ Administration</h1>
-            
             <h2>📤 Importer un fichier Excel</h2>
             <div class="form-group">
                 <label>Sélectionne un fichier Bornage :</label>
                 <input type="file" id="excelFile" accept=".xlsx,.xls">
             </div>
             <button type="button" onclick="importExcel()">📥 Importer</button>
-            
             <h2>📋 Missions disponibles</h2>
             <div id="missionsList"></div>
-            
             <button type="button" class="admin" onclick="logout()">🔓 Déconnexion</button>
         </div>
 
-        <!-- Page Configuration -->
         <div id="missionPage" class="hidden">
             <h1>Configuration Mission</h1>
-            <div class="form-group">
-                <label>Nom :</label>
-                <input type="text" id="nomInput" readonly>
-            </div>
-            <div class="form-group">
-                <label>Prénom :</label>
-                <input type="text" id="prenomInput" readonly>
-            </div>
-            <div class="form-group">
-                <label>Client :</label>
-                <input type="text" id="clientInput" readonly>
-            </div>
-            <div class="form-group">
-                <label>Magasin :</label>
-                <input type="text" id="magasinInput" readonly>
-            </div>
-            <div class="form-group">
-                <label>Semaine :</label>
-                <input type="number" id="semaineInput">
-            </div>
+            <div class="form-group"><label>Nom :</label><input type="text" id="nomInput" readonly></div>
+            <div class="form-group"><label>Prénom :</label><input type="text" id="prenomInput" readonly></div>
+            <div class="form-group"><label>Client :</label><input type="text" id="clientInput" readonly></div>
+            <div class="form-group"><label>Magasin :</label><input type="text" id="magasinInput" readonly></div>
+            <div class="form-group"><label>Semaine :</label><input type="number" id="semaineInput"></div>
             <button type="button" onclick="startMission()">Commencer la mission</button>
             <button type="button" class="secondary" onclick="backToAuth()">🔙 Retour</button>
         </div>
 
-        <!-- Page Saisie Terrain -->
         <div id="saisiePageParent" class="hidden">
             <div id="saisiePageContent"></div>
         </div>
 
-        <!-- Page Fin de journée -->
         <div id="endPage" class="hidden">
             <h1>Fin de journée</h1>
             <div id="reportContent"></div>
@@ -124,7 +100,7 @@
             </div>
             <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 15px; text-align: center;">
                 <p style="color: #666; margin: 0 0 15px 0;">✅ Si c'est ok pour vous, vous pouvez réinitialiser les adresses saisies</p>
-                <button type="button" class="primary" onclick="resetMission()" style="width: 100%;">🔄 Réinitialiser</button>
+                <button type="button" onclick="resetMission()" style="width: 100%;">🔄 Réinitialiser</button>
             </div>
         </div>
     </div>
@@ -133,8 +109,8 @@
     <script>
         const ADMIN_PASSWORD = "AMC-25-04-26";
         const ADMIN_EMAIL = "amc@auditmediacom.com";
-        
-        // MISSIONS INTÉGRÉES
+        const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbxmrMoyomEDaRsYOiYDsUF3ou6y1ZDjg-K9ag9CiECSuzVLV3-Rw0s272ylyIacTEbZ/exec";
+
         let missionsData = {
             "1234": {"prenom":"Séverine","nom":"COUPRIE","client":"Sylvalliance","magasin":"Gognies Chaussée","semaine":"15","communes":["Gognies-Chaussée"],"rues_par_commune":{"Gognies-Chaussée":["RUE DE LA PAIX","RUE DES FLEURS","RUE DU COMMERCE"]}},
             "2345": {"prenom":"Séverine","nom":"COUPRIE","client":"Lidl Classique","magasin":"Mérignac","semaine":"16","communes":["Mérignac"],"rues_par_commune":{"Mérignac":["RUE DE LA REPUBLIQUE","RUE DE LA GARE","AVENUE DU GENERAL LECLERC"]}},
@@ -145,17 +121,13 @@
             "9003": {"prenom":"Lorena","nom":"MAZAUD BARBETTE","client":"Fenetrea","magasin":"St Apollinaire","semaine":"19","communes":["DIJON","QUETIGNY","ST APOLLINAIRE"],"rues_par_commune":{"DIJON":["ALLEE DES ARGONAUTES","ALLEE JEAN BAPTISTE MATHEY","ALLEE JEAN CLAUDE NAIGEON","ALLEE JEAN MAIREY","ALLEE JULIETTE DUBOIS","ALLEE MONSEIGNEUR SEMBEL","ALLEE PAULINE VIARDOT GARCIA","AVENUE DU 1ER CONSUL","AVENUE DU DRAPEAU","AVENUE FRANCOISE GIROUD","AVENUE GUSTAVE EIFFEL","BOULEVARD CHANOINE KIR","BOULEVARD DES BOURROCHES","BOULEVARD DES GORGETS","BOULEVARD DU CHANOINE KIR","BOULEVARD DU MARECHAL GALLIENI","BOULEVARD DU MARECHAL JOFFRE","BOULEVARD MARECHAL DE LATTRE DE TASSIGNY","BOULEVARD MARECHAL GALLIENI","BOULEVARD PAUL DOUMER","CHEMIN DE CROMOIS","CHEMIN DE LA CHARMETTE","CHEMIN DE LA COMBE SAINT JOSEPH","CHEMIN DE LA CROIX DES VALENDONS","CHEMIN DE LA RENTE SAINT JOSEPH","D905","IMPASSE ABBE DEBRIE","IMPASSE AUX CHARMES D ASNIERES","IMPASSE DELACROIX","IMPASSE DES FERRIERES","IMPASSE DU CHANOINE HENRI LATOUR","IMPASSE DU COMMANDANT NOISOT","IMPASSE DU DOCTEUR PAUL BARON","IMPASSE EDGAR DEGAS","IMPASSE FRED WORMSER","IMPASSE GEORGES DE LA TOUR","IMPASSE GEORGES ROUAULT","IMPASSE GREGOIRE DE TOURS","IMPASSE HELENE BOUCHER","IMPASSE JEAN BAPTISTE CHARDIN","IMPASSE LOUIS COIFFIER","IMPASSE NICOLAS POUSSIN","IMPASSE NUNGESSER ET COLI","IMPASSE OVIDE YENCESSE","IMPASSE PHILIBERT BOURGEON","IMPASSE PIERRE GERINGER","IMPASSE RADET","IMPASSE RODIN","IMPASSE WATTEAU","LIEU DIT BERGERIE SAINT JOSEPH","MAIL TINO ROSSI","PASSAGE JACQUES BREL","PLACE ABBE CHANLON","PLACE DE LA FONTAINE","PLACE GASTON GERARD","PLACE GENERAL CHARET","QUAI NICOLAS ROLIN","ROUTE D IS SUR TILLE","ROUTE DE LANGRES","RUE ADEODAT BOISSARD","RUE ALAIN BOMBARD","RUE ALBERT THIBAUDET","RUE ALEXANDER FLEMING","RUE ANGELIQUE DUCOUDRAY","RUE ANTOINE BOURDELLE","RUE ARPAD SZENES","RUE ARTHUR CHAUDOUET","RUE ARTHUR KLEINCLAUSZ","RUE ARTHUR MORELET","RUE AU BOUCHET","RUE BENJAMIN GUERARD","RUE CHAMPEAU","RUE CHANOINE BORDET","RUE CHARLES BOMBONNEL","RUE CHARLES LAPICQUE","RUE CHARLES MOCQUERY","RUE CHARLES PHILBEE","RUE CLAUDE ROSSIGNOL","RUE CURTAT","RUE DE BRUGES","RUE DE DIEPPE","RUE DE FLANDRES DUNKERQUE","RUE DE L ABBE DEBRIE","RUE DE L YSER","RUE DE LA BREUCHILLIERE","RUE DE LA BROT","RUE DE LA CHARMETTE","RUE DE LA CROIX DES VALENDONS","RUE DE LA FONTAINE BILLENOIS","RUE DE LA FONTAINE SAINTE ANNE","RUE DE MALINES","RUE DES ARDENNES","RUE DES ROUSSOTTES","RUE DES VALENDONS","RUE DES VARENNES","RUE DOCTEUR CALMETTE","RUE DOCTEUR SCHMITT","RUE DU BAILLY","RUE DU CHAMP AUX PRETRES","RUE DU COLONEL PICARD","RUE DU DOCTEUR MAURICE DUBARD","RUE DU DOCTEUR PARIZOT","RUE DU DOCTEUR QUIGNARD","RUE DU GENERAL BONY","RUE DU GENERAL FAUCONNET","RUE DU MARECHAL LECLERC","RUE DU PERE CHARLES DE FOUCAULD","RUE DU STADE","RUE EDME VERNIQUET","RUE ELSA TRIOLET","RUE EMILE POILLOT","RUE ERNEST BOUTEILLER","RUE ETIENNE METMAN","RUE EUGENE BATAILLON","RUE FRANZ HALS","RUE GEORGES BRASSENS","RUE GEORGES CONNES","RUE GINETTE WATELLE","RUE GUSTAVE NOBLEMAIRE","RUE GUY DE MAUPASSANT","RUE HENRI DROUOT","RUE HENRI DUNANT","RUE HENRI GRIMM","RUE HENRY DE MONTHERLANT","RUE HYACINTHE VINCENT","RUE JACQUELINE DE ROMILLY","RUE JACQUES BREL","RUE JEAN MERMOZ","RUE JEAN MOULIN","RUE JEAN PONCELET","RUE JEANNE BARRET","RUE JOSEPH SAMSON","RUE LEO LAGRANGE","RUE LOUIS DEROCHE","RUE LOUNES MATOUB","RUE MARC SANGNIER","RUE MARIA HELENA VIEIRA DA SILVA","RUE MARIE BERTHAUD","RUE MARIUS D AVENCHES","RUE MAURICE BLONDEL","RUE MAURICE DESLANDRES","RUE MAURICE EMMANUEL","RUE MICHEL ANGE","RUE MONSEIGNEUR DADOLLE","RUE MONSEIGNEUR FAVIER","RUE PAUL CLAUDEL","RUE RAOUL DE SAINT SEINE","RUE RENE CASSIN","RUE ROGET DE BELLOGUET","RUE SAINT MARTIN","RUE SAINT VINCENT DE PAUL","RUE SIMONE DE BEAUVOIR"],"QUETIGNY":["ALLEE COPERNIC","ALLEE DES JARDINS","ALLEE DES PHILOSOPHES","ALLEE DES POETES","ALLEE GALILEE","ALLEE GIORDANNO BRUNO","ALLEE GUTENBERG","ALLEE LEO LAGRANGE","ALLEE OLYMPE DE GOUGES","ALLEE ROSA PARKS","ALLEE THEILHARD DE CHARDIN","AVENUE DE BOURGOGNE","AVENUE DU 8 MAI 1945","AVENUE DU CROMOIS","AVENUE DU PARC","BOULEVARD DE BELLEVUE","BOULEVARD DE L EUROPE","BOULEVARD DE LA CROIX SAINT MARTIN","BOULEVARD DU CHAMP AUX METIERS","BOULEVARD DU GRAND MARCHE","CHEMIN DE LA FONTAINE DE COUTERNON","CHEMIN FONTAINE DE COUTERNON","FERME DE LIMPREY","IMPASSE CHAMPEAU","IMPASSE DE MONTBOUCHARD","IMPASSE DES BOUSSENOTS","IMPASSE DES CHARRIERES","IMPASSE DES EBASOIRES","IMPASSE DES TILLEULS","PLACE HUBERT CURIEN","PLACE ISAAC NEWTON","ROND POINT DES SPORTS","ROND POINT DU 9 NOVEMBRE 1989","RUE ALEXANDRA DAVID NEEL","RUE ALIOUNE BLONDIN BEYE","RUE BARTOLOME DE LAS CASAS","RUE CAMILLE CLAUDEL","RUE CHAMPEAU","RUE DE BOUS","RUE DE L EGLISE","RUE DE L ENCLUME","RUE DE LA BROCHE","RUE DE LA FONTAINE","RUE DE LA FORGE","RUE DE LA GOUGE","RUE DE LA HOUE","RUE DE LA LOUERE","RUE DE LA SERPE","RUE DENIS DIDEROT","RUE DES ARTISANS","RUE DES CHALANDS","RUE DES CHARRIERES","RUE DES CISEAUX","RUE DES ECHOPPES","RUE DES ERABLES","RUE DES MARRONNIERS","RUE DES PEUPLIERS","RUE DES POTIERS","RUE DES TILLEULS","RUE DES TOURNESOLS","RUE DOCTEUR ALBERT SCHWEITZER","RUE DU COMMERCE","RUE DU PLATANE","RUE DU SQUARE","RUE ELSA TRIOLET","RUE FRANCOISE DOLTO","RUE HENRI DUNANT","RUE JEAN FRANCOIS CHAMPOLLION","RUE JEAN ZAY","RUE JEANNE MANSE","RUE L ANTOINE DE BOUGAINVILLE","RUE LOUISE MICHEL","RUE M CLAUDE VAILLANT COUTURIER","RUE MARGUERITE DURAS","RUE MARIE CURIE","RUE PIERRE MAITRE","RUE PIERRE MEUNIER","RUE RACINE","RUE RENE CASSIN","RUE ROLAND CARRAZ","RUE SAINT MARTIN","RUE SUZANNE BRUNSCHVIG","RUE VICTOR SCHOELCHER","RUE VOLTAIRE"],"ST APOLLINAIRE":["ALLEE ROBERT SCHUMAN","CHEMIN DE LA NOIRETTE","COURS DE GRAY","IMPASSE ALEXIS THOMAS","IMPASSE CELESTIN FREINET","IMPASSE CLAUDE MARTIN","IMPASSE DE FRANCHE COMTE","IMPASSE DE L EST","IMPASSE DE L ORME","IMPASSE DE LA FONTAINE SOYER","IMPASSE DE LA TILLE","IMPASSE DES ACACIAS","IMPASSE DES BUTTES","IMPASSE DES MARRONNIERS","IMPASSE DES PEUPLIERS","IMPASSE DES TILLEULS","IMPASSE DES VOSGES","IMPASSE DU CEP","IMPASSE DU JURA","IMPASSE DU MUGUET","IMPASSE DU PESSEAU","IMPASSE DU VERT VILLAGE","IMPASSE EN BASSES TERRES","IMPASSE EN PAILLERY","IMPASSE JACQUAT","IMPASSE LEON JOUHAUX","IMPASSE MANCA","IMPASSE ROLAND DORGELES","PLACE ALFRED GREVIN","PLACE DE L EGLISE","PLACE DES ETATS DE BOURGOGNE","ROUTE DE GRAY","RUE ALAIN FOURNIER","RUE ALBERT CAMUS","RUE ALBERT SCHWEITZER","RUE ALPHONSE DE LAMARTINE","RUE AU MAIRE","RUE AUX GRANDS JOURNAUX","RUE CHAMP AUX PIERRES","RUE CHAMP PRIEUR","RUE CHAMPEAU","RUE CHARLES LE TEMERAIRE","RUE CHARLES PEGUY","RUE CLAIRON SELLIER","RUE CLAUDE MARTIN","RUE CLAUS SLUTER","RUE COLETTE","RUE D ALSACE","RUE D ORLEANS","RUE DE BASTOGNE","RUE DE BOURGOGNE","RUE DE CLAIRVOT","RUE DE COURTPRE","RUE DE CRACOVIE","RUE DE DIJON","RUE DE L EGALITE","RUE DE L ERSOTTE","RUE DE L ESCAUT","RUE DE L YSER","RUE DE LA BROT","RUE DE LA CURE","RUE DE LA FONTAINE SOYER","RUE DE LA FRATERNITE","RUE DE LA MEURIE","RUE DE LA NOIRETTE","RUE DE LA PLANCHOTTE","RUE DE LA REDOUTE","RUE DE LA SOLIDARITE","RUE DE LA TIRBAUDE","RUE DE LA VIGNE AUX CHIENS","RUE DE LORRAINE","RUE DE MARIE BOURGOGNE","RUE DE MIRANDE","RUE DE MOIREY","RUE DE SULLY","RUE DE VERDUN","RUE DES BEGONIAS","RUE DES BLEUETS","RUE DES BONS COMPAGNONS","RUE DES BUTTES","RUE DES CHAMPS FLEURIS","RUE DES CHENEVIERES","RUE DES ECOLES","RUE DES LILAS","RUE DES LONGENES","RUE DES ROSES","RUE DU 11 SEPTEMBRE 1944","RUE DU CHAMP AUX PRETRES","RUE DU CHAMP PRIEUR","RUE DU GENERAL DE GAULLE","RUE DU MIDI","RUE DU PAQUIER D AUPRE","RUE DU POIRIER","RUE DU PRESSOIR","RUE DU SOLEIL LEVANT","RUE EN BOURBOYONS","RUE EN CARCAUT","RUE EN COUBLANC","RUE EN LIN","RUE EN PAILLERY","RUE EN ROSEY","RUE FERDINAND BUISSON","RUE FLEURIEE","RUE FRANCOIS LECHENET","RUE FRANCOIS MITTERRAND","RUE FRANCOIS POMPON","RUE FREDERIC PASSY","RUE GAUTHIER","RUE GEORGES DE BUFFON","RUE GUSTAVE EIFFEL","RUE HENRI VINCENOT","RUE HENRY DARCY","RUE JACQUAT","RUE JEAN DE MARTIGNY","RUE JEAN GIRAUDOUX","RUE JEAN PHILIPPE RAMEAU","RUE JEAN SANS PEUR","RUE JOSEPH SAMSON","RUE LEON BOURGEOIS","RUE LES LONGES PLANTES","RUE MARIE DE BOURGOGNE","RUE MARIE NOEL","RUE PAUL CLAUDEL","RUE PAUL VALERY","RUE PHILIPPE LE BON","RUE PHILIPPE LE HARDI","RUE RENE CASSIN","RUE SAINT JEAN","RUE SEBASTIEN DE VAUBAN","RUE TABOUROT DES ACCORDS"]}},
             "9004": {"prenom":"Séverine","nom":"COUPRIE","client":"Centrakor","magasin":"Lesparre Medoc","semaine":"19","communes":["GAILLAN EN MEDOC","LESPARRE MEDOC"],"rues_par_commune":{"GAILLAN EN MEDOC":["CHEMIN DE BARENNES","CHEMIN DE CONSTANTIN","CHEMIN DE LA BAURIE","CHEMIN DE PEY BROUSTERA","CHEMIN DE POUYEAU","CHEMIN DE RETAUTITS","CHEMIN DES BARENNES","CHEMIN DES CABANS","CHEMIN DES PARGAUX","CHEMIN DES POULARDS","CHEMIN DU CLAUZET","CHEMIN DU GARTIEU DE BEAUTEMPS","CHEMIN DU MOULIN DE VIGNEMALON","CHEMIN PARGAUX","IMPASSE DE BLANC","IMPASSE DE BOURGUEYRAUD","IMPASSE DE CASTANET","IMPASSE DE LARRIEUX","IMPASSE DES FOUGERES","IMPASSE DU MEY","IMPASSE LARRIEUX","LIEU DIT LE TRUCH","LOTISSEMENT GRAVETTE","LOTISSEMENT LA GRAVETTE","LUCATUM","PASSAGE DE COUDESSAN","PASSAGE DE L ECOLE","PASSAGE DE LA MAILLARDE","PASSE DES TUILIERES","PASSE DU BRUGUE","PLACE DU 11 NOVEMBRE","PLACE DU 8 MAI 1945","PLACE RENE CASSIN","ROUTE D HOURTIN","ROUTE DE BOURGUEYRAUD","ROUTE DE CALMEYRAC","ROUTE DE CANGRAND","ROUTE DE CASTAGNEY","ROUTE DE CASTANET","ROUTE DE COUDESSAN","ROUTE DE GADET","ROUTE DE LA CASCADE","ROUTE DE LA FONT DU PIN","ROUTE DE LANDE BASSE","ROUTE DE LESPARRE","ROUTE DE LUC BLANC","ROUTE DE NAUJAC","ROUTE DE PAMPIRAC","ROUTE DE PEY DE LACANAU","ROUTE DE PEY LACANAU","ROUTE DE ROUMAN","ROUTE DE SOULAC","ROUTE DE TERRE HUC","ROUTE DE VENDAYS","ROUTE DU CASTAGNEY","ROUTE DU GADET","ROUTE DU LUC BLANC","ROUTE DU PETIT MOULIN","ROUTE DU PEY DE LACANAU","ROUTE DU PIN SEC","RUE CAP DU BOIS","RUE DE BLAYAC","RUE DE CAMPET","RUE DE L EGLISE","RUE DE L HOTEL DE VILLE","RUE DE LA BRANDETTE","RUE DE LA REGE","RUE DE LA TOUR","RUE DE LAYAUGA","RUE DE MAUTEMPS","RUE DE VIGNEAU","RUE DU BOURG","RUE DU CADEAU","RUE DU CAP DU BOIS","RUE DU CIMETIERE","RUE DU CLAUZET","RUE DU MOULIN ROUGE","RUE DU PORTAIL ROUGE","RUE DU RECEBA","RUE DU VIGNEAU"],"LESPARRE MEDOC":["ALLEE DES FONTAINES","ALLEE DU 11 NOVEMBRE","ALLEE DU 8 MAI 1945","AVENUE DU DOCTEUR HENRY BENABEN","AVENUE JEAN MOULIN","AVENUE PIERRE MENDES FRANCE","BELLOC EST","CAILLOU OUEST","CHEMIN ANDRE LARTIGUE","CHEMIN ANDRE NORMANDIN","CHEMIN BEL AIR","CHEMIN DANIEL FLEURT","CHEMIN DE BAYRON","CHEMIN DE CANTERANE","CHEMIN DE COULON","CHEMIN DE FONGROUSSE","CHEMIN DE GRAZAQUEYRE","CHEMIN DE L ACACIA","CHEMIN DE L ALLUMETEYRE","CHEMIN DE LA CASCADE","CHEMIN DE LA FORET","CHEMIN DE LA GELADE","CHEMIN DE LA LANDETTE","CHEMIN DE LA MOULINE","CHEMIN DE LA SABLIERE","CHEMIN DE PLANQUE","CHEMIN DE PRADAL","CHEMIN DE RAMONET","CHEMIN DE RAYNAUD","CHEMIN DE SAINTE MARIE","CHEMIN DE TREMAN","CHEMIN DES ANES","CHEMIN DES CHATAIGNIERS","CHEMIN DU BENET","CHEMIN DU BRULE","CHEMIN DU CABANON","CHEMIN DU GINESTRA","CHEMIN DU GRAND BRANA","CHEMIN DU LANDIN","CHEMIN DU PIN BRULE","CHEMIN DU VIGNAL","CHEMIN DU VIGNAL 2","CHEMIN SAINTE MARIE","CITE JEAN MOULIN","CLOS DE CANTERANE","CLOS DE L ESCASSOT","CLOS DES FRUITIERS","COURS ALSACE LORRAINE","COURS DU GENERAL DE GAULLE","COURS DU MARECHAL DE LATTRE DE TASSIGNY","COURS DU MARECHAL LECLERC","COURS EDOUARD BRANLY","COURS GEORGES MANDEL","COURS JEAN JAURES","COURS MAL DE LATTRE DE TASSIGNY","COURS MARECHAL LECLERC","COURS PERRIER DE LARSAN","COURS SAINT TRELODY","COURS VICTOR HUGO","ESCOT EST","FOUR A CHAUX","HAMEAU DE LUZAN","HAMEAU FONGROUSE","IMPASSE ANDRE BERNARD","IMPASSE ARISTIDE BRIAND","IMPASSE CHATEAUNEUF","IMPASSE DE L EQUERRE","IMPASSE DES ALINEYS","IMPASSE DU PALAIS DE JUSTICE","IMPASSE DU RENARD","IMPASSE FONTAINE DE FONGROUSE","LE BATTANT SUD","LES COUDREYS","LIEU DIT ESCOT EST","LIEU DIT LA HERREYRE","LIEU DIT PLASSAN NORD","LIEU DIT PREUILLAC","LOTISSEMENT BOULANGE","LOTISSEMENT DES VIOLETTES","LOTISSEMENT LES ALLEES DE PIERRE","PL DES MARTYRS DE LA RESISTANCE","PLACE DE PLANQUE","PLACE DE SAINT CLAIR","PLACE DU CHAMP DE FOIRE","PLACE DU COULOUMEY","PLACE FOUCHOU LAPEYRADE","PLACE GAMBETTA","PLACE LABORIE","PLACE MARECHAL FOCH","PLACE SAINT CLAIR","PONT DE COULON","RESIDENCE ALBERT CAMUS","RESIDENCE ALIZES","RESIDENCE BOIS JOLI","RESIDENCE DES ALIZES","RESIDENCE DU BOURDIEU","RESIDENCE MEDULI","ROUTE D HOURTIN","ROUTE DE BORDEAUX","ROUTE DE CONNEAU","ROUTE DE PAUILLAC","ROUTE DE PLASSAN","ROUTE DES MARCEAUX","RUE ABBE BERGEY","RUE ABBE PIERRE","RUE AIME COIFFARD","RUE ANDRE BERNARD","RUE ANDRE GUICHENET","RUE ANDRE LAFITTAU","RUE ANDRE MONNIER","RUE ANTOINE CLARY","RUE ARISTIDE BRIAND","RUE BREMONTIER","RUE CORALIE BENILLAN","RUE CURUTCHET","RUE DE CANTERANNE","RUE DE GRAMONT","RUE DE L ABBE BERGEY","RUE DE L ABBE BOYE","RUE DE L EGLISE","RUE DE L EQUERRE","RUE DE L ILE D AMOUR","RUE DE LA BRIGADE CARNOT","RUE DE LA LOI","RUE DE LA PAIX","RUE DE LA TOUCARRE","RUE DE LESCARNADEY","RUE DE VERDUN","RUE DES ABBES COLLIN","RUE DES ALINEYS","RUE DES AMIS","RUE DES FORGERONS","RUE DES PLAIDEURS","RUE DES REMOULEURS","RUE DES TOURNEURS","RUE DES VIOLETTES","RUE DU CHAMP DE FOIRE","RUE DU CLOS FLEURI","RUE DU COUVENT","RUE DU DOCTEUR BOS","RUE DU DOCTEUR MEIGNIE","RUE DU DOCTEUR SCHWEITZER","RUE DU LANDIN","RUE DU LT CNL JEAN DE LAGARRIGUE","RUE DU MOULIN","RUE DU PALAIS DE JUSTICE","RUE DU RENARD","RUE DU ZIC","RUE EUGENE COIFFARD","RUE EUGENE MARCOU","RUE FRANCOIS JOSEPH MONTAIGU","RUE FRANCOIS JOSEPH MONTEGU","RUE JEAN FOURMENT","RUE JEAN JACQUES ROUSSEAU","RUE JEAN MERMOZ","RUE JOSEPH ET FRANCOIS CONORD","RUE LABORIE","RUE LABORIE 1","RUE LABORIE 2","RUE LABORIE II","RUE LAMARTINE","RUE LUCIEN DAZAT","RUE MABLY","RUE MARCEL PAUL","RUE MAURICE REY","RUE MICHEL CASTERA","RUE PASTEUR","RUE PAUL VIGNAU","RUE PIERRE BODIN","RUE PIERRE CURIE","RUE RENE CASSIN","RUE RENE ROQUES","RUE ROLAND DORGELES","RUE RONDE","RUE ROSE","RUE SAINT EXUPERY","RUE SAINT HUBERT","RUE SAINTE GEMME","RUE SALVADOR ALLENDE","RUELLE DU PUITS","ZAC DE BELLOC"]}}
         };
-        
+
         let localMissions = {};
         let currentAddresses = [];
         let missionInfo = {};
         let currentMissionCode = null;
         let addressesSentCount = 0;
-        
-        // URL du webhook Google Apps Script
-        const GOOGLE_SHEET_WEBHOOK = "https://script.google.com/macros/s/AKfycbxmrMoyomEDaRsYOiYDsUF3ou6y1ZDjg-K9ag9CiECSuzVLV3-Rw0s272ylyIacTEbZ/exec";
 
-        // *** CORRECTION CLÉ : vu envoyé en string "OUI"/"NON" ***
         function sendToGoogleSheet(addr) {
             const payload = {
                 client: missionInfo.client,
@@ -165,14 +137,13 @@
                 rue: addr.rue,
                 commune: addr.commune,
                 foyers: addr.foyers,
-                vu: addr.vu ? "OUI" : "NON",
                 resultat: addr.resultat,
                 typemalservi: addr.typemalservi,
                 civilite: addr.civilite,
                 nomPersonne: addr.nomPersonne,
                 pasCommunication: addr.pasCommunication
             };
-            
+
             fetch(GOOGLE_SHEET_WEBHOOK, {
                 method: 'POST',
                 body: JSON.stringify(payload)
@@ -189,89 +160,56 @@
 
         function updateSentCounter() {
             const counter = document.getElementById('sentCounter');
-            if (counter) {
-                counter.textContent = addressesSentCount;
-            }
+            if (counter) counter.textContent = addressesSentCount;
         }
 
         function saveAddressesToStorage() {
-            const key = `mission_${currentMissionCode}_addresses`;
-            localStorage.setItem(key, JSON.stringify(currentAddresses));
+            localStorage.setItem(`mission_${currentMissionCode}_addresses`, JSON.stringify(currentAddresses));
         }
 
         function loadAddressesFromStorage() {
-            const key = `mission_${currentMissionCode}_addresses`;
-            const saved = localStorage.getItem(key);
-            if (saved) {
-                try {
-                    currentAddresses = JSON.parse(saved);
-                    return true;
-                } catch (e) {
-                    return false;
-                }
-            }
+            const saved = localStorage.getItem(`mission_${currentMissionCode}_addresses`);
+            if (saved) { try { currentAddresses = JSON.parse(saved); return true; } catch(e) { return false; } }
             return false;
         }
 
         function clearSavedAddresses() {
-            const key = `mission_${currentMissionCode}_addresses`;
-            localStorage.removeItem(key);
+            localStorage.removeItem(`mission_${currentMissionCode}_addresses`);
             currentAddresses = [];
         }
 
         function showPage(pageId) {
-            document.getElementById('authPage').classList.add('hidden');
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('adminPage').classList.add('hidden');
-            document.getElementById('missionPage').classList.add('hidden');
-            document.getElementById('saisiePageParent').classList.add('hidden');
-            document.getElementById('endPage').classList.add('hidden');
+            ['authPage','loginPage','adminPage','missionPage','saisiePageParent','endPage'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
             document.getElementById(pageId).classList.remove('hidden');
         }
 
         function goToAdmin() { showPage('loginPage'); }
-
-        function goBackToAuth() {
-            clearSavedAddresses();
-            currentAddresses = [];
-            missionInfo = {};
-            currentMissionCode = null;
-            showPage('authPage');
-        }
-
+        function goBackToAuth() { clearSavedAddresses(); missionInfo = {}; currentMissionCode = null; showPage('authPage'); }
         function backToAuth() { showPage('authPage'); }
+        function logout() { showPage('authPage'); }
 
         function checkPassword() {
-            const password = document.getElementById('passwordInput').value;
-            if (password === ADMIN_PASSWORD) {
+            if (document.getElementById('passwordInput').value === ADMIN_PASSWORD) {
                 document.getElementById('passwordInput').value = '';
                 showPage('adminPage');
                 displayMissions();
-            } else {
-                alert('❌ Mot de passe incorrect');
-            }
+            } else { alert('❌ Mot de passe incorrect'); }
         }
-
-        function logout() { showPage('authPage'); }
 
         function displayMissions() {
             let html = '';
             for (let code in missionsData) {
-                const mission = missionsData[code];
-                html += `<div class="mission-item">
-                    <div><strong>${code}</strong> - ${mission.client} (${mission.magasin})</div>
-                    <button class="admin" onclick="deleteMission('${code}')">❌ Supprimer</button>
-                </div>`;
+                const m = missionsData[code];
+                html += `<div class="mission-item"><div><strong>${code}</strong> - ${m.client} (${m.magasin})</div><button class="admin" onclick="deleteMission('${code}')">❌ Supprimer</button></div>`;
             }
             document.getElementById('missionsList').innerHTML = html || '<p>Aucune mission</p>';
         }
 
         function deleteMission(code) {
             if (confirm(`Supprimer la mission ${code} ?`)) {
-                if (localMissions[code]) {
-                    delete localMissions[code];
-                    localStorage.setItem('localMissions', JSON.stringify(localMissions));
-                }
+                if (localMissions[code]) { delete localMissions[code]; localStorage.setItem('localMissions', JSON.stringify(localMissions)); }
                 delete missionsData[code];
                 displayMissions();
             }
@@ -280,32 +218,19 @@
         function importExcel() {
             const file = document.getElementById('excelFile').files[0];
             if (!file) { alert('❌ Sélectionne un fichier'); return; }
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const sheetName = workbook.SheetNames[0];
-                    const sheet = workbook.Sheets[sheetName];
-                    const rows = XLSX.utils.sheet_to_json(sheet, {header: 1});
-
-                    const code = prompt('Code mission (ex: 9999):');
-                    if (!code) return;
-                    const prenom = prompt('Prénom enquêteur:');
-                    if (!prenom) return;
-                    const nom = prompt('Nom enquêteur:');
-                    if (!nom) return;
-                    const client = prompt('Client:');
-                    if (!client) return;
-                    const magasin = prompt('Magasin:');
-                    if (!magasin) return;
-                    const semaine = prompt('Semaine:');
-                    if (!semaine) return;
-
+                    const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+                    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+                    const code = prompt('Code mission:'); if (!code) return;
+                    const prenom = prompt('Prénom enquêteur:'); if (!prenom) return;
+                    const nom = prompt('Nom enquêteur:'); if (!nom) return;
+                    const client = prompt('Client:'); if (!client) return;
+                    const magasin = prompt('Magasin:'); if (!magasin) return;
+                    const semaine = prompt('Semaine:'); if (!semaine) return;
                     const communes = new Set();
                     const rues_par_commune = {};
-
                     for (let i = 1; i < rows.length; i++) {
                         const row = rows[i];
                         if (!row[2]) continue;
@@ -317,7 +242,6 @@
                             if (!rues_par_commune[commune].includes(rue)) rues_par_commune[commune].push(rue);
                         }
                     }
-
                     const newMission = { prenom, nom, client, magasin, semaine, communes: Array.from(communes).sort(), rues_par_commune };
                     localMissions[code] = newMission;
                     localStorage.setItem('localMissions', JSON.stringify(localMissions));
@@ -325,9 +249,7 @@
                     displayMissions();
                     document.getElementById('excelFile').value = '';
                     alert(`✅ Mission ${code} importée avec ${communes.size} commune(s)`);
-                } catch (error) {
-                    alert(`❌ Erreur lors de la lecture du fichier: ${error.message}`);
-                }
+                } catch(error) { alert(`❌ Erreur: ${error.message}`); }
             };
             reader.readAsArrayBuffer(file);
         }
@@ -347,64 +269,46 @@
         }
 
         function startMission() {
-            const semaine = document.getElementById('semaineInput').value;
             missionInfo = {
                 code: currentMissionCode,
                 nom: document.getElementById('nomInput').value,
                 prenom: document.getElementById('prenomInput').value,
                 client: document.getElementById('clientInput').value,
                 magasin: document.getElementById('magasinInput').value,
-                semaine: semaine
+                semaine: document.getElementById('semaineInput').value
             };
-            
             addressesSentCount = 0;
             const mission = missionsData[currentMissionCode];
 
             let saisieHTML = `<h1>Saisie Terrain</h1>
-                <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 12px;">
-                    <strong>💾 Auto-sauvegarde activée</strong> - Vos adresses sont sauvegardées automatiquement
+                <div style="background:#fff3cd;padding:10px;border-radius:5px;margin-bottom:15px;font-size:12px;">
+                    <strong>💾 Auto-sauvegarde activée</strong>
                 </div>
-                <div style="background: #d4edda; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="background:#d4edda;padding:10px;border-radius:5px;margin-bottom:15px;font-size:12px;display:flex;justify-content:space-between;align-items:center;">
                     <strong>📤 Envoi au serveur</strong>
-                    <span style="background: #28a745; color: white; padding: 5px 10px; border-radius: 3px; font-size: 14px; font-weight: bold;">Adresses envoyées: <span id="sentCounter">0</span></span>
-                </div>`;
-            
-            saisieHTML += `<h2>Localisation</h2>
+                    <span style="background:#28a745;color:white;padding:5px 10px;border-radius:3px;font-size:14px;font-weight:bold;">Adresses envoyées: <span id="sentCounter">0</span></span>
+                </div>
+                <h2>Localisation</h2>
                 <div class="form-group">
                     <label>Commune :</label>
                     <select id="communeSelect" onchange="updateStreets()">
                         <option value="">-- Sélectionner --</option>
                         ${mission.communes.map(c => `<option value="${c}">${c}</option>`).join('')}
-                        <option value="AUTRE">➕ Autre commune (saisie libre)</option>
+                        <option value="AUTRE">➕ Autre commune</option>
                     </select>
                 </div>
                 <div id="communeLibreSection" class="hidden">
-                    <div class="form-group">
-                        <label>Commune (saisie libre) :</label>
-                        <input type="text" id="communeLibreInput" placeholder="Tapez la commune">
-                    </div>
+                    <div class="form-group"><label>Commune (saisie libre) :</label><input type="text" id="communeLibreInput" placeholder="Tapez la commune"></div>
                 </div>
                 <div class="form-group">
                     <label>Rue :</label>
-                    <input type="text" id="rueSearch" placeholder="Tapez les premières lettres..." onkeyup="filterRues()" style="margin-bottom: 8px;">
-                    <div id="rueSelectSection">
-                        <select id="rueSelect">
-                            <option value="">-- Sélectionner --</option>
-                        </select>
-                    </div>
-                    <div id="rueLibreSection" class="hidden">
-                        <input type="text" id="rueLibreInput" placeholder="Tapez la rue">
-                    </div>
+                    <input type="text" id="rueSearch" placeholder="Tapez les premières lettres..." onkeyup="filterRues()" style="margin-bottom:8px;">
+                    <div id="rueSelectSection"><select id="rueSelect"><option value="">-- Sélectionner --</option></select></div>
+                    <div id="rueLibreSection" class="hidden"><input type="text" id="rueLibreInput" placeholder="Tapez la rue"></div>
                 </div>
-                <div class="form-group">
-                    <label>Numéro :</label>
-                    <input type="number" id="numeroInput">
-                </div>
-                <div class="form-group">
-                    <label>Suffixe (optionnel) :</label>
-                    <input type="text" id="sufixeInput" placeholder="Bis, Ter, A, B...">
-                </div>
-                
+                <div class="form-group"><label>Numéro :</label><input type="number" id="numeroInput"></div>
+                <div class="form-group"><label>Suffixe (optionnel) :</label><input type="text" id="sufixeInput" placeholder="Bis, Ter, A, B..."></div>
+
                 <h2>Informations Adresse</h2>
                 <div class="form-group">
                     <label>Habitat :</label>
@@ -414,10 +318,7 @@
                         <option value="Individuel">Individuel</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Nombre de foyers :</label>
-                    <input type="number" id="foyersInput">
-                </div>
+                <div class="form-group"><label>Nombre de foyers :</label><input type="number" id="foyersInput"></div>
                 <div class="form-group">
                     <label>Accès :</label>
                     <select id="accesSelect">
@@ -429,7 +330,7 @@
                         <option value="Non servi">Non servi</option>
                     </select>
                 </div>
-                
+
                 <h2>Résultat</h2>
                 <div class="form-group">
                     <label>Résultat :</label>
@@ -440,13 +341,6 @@
                         <option value="Mal servi">⚠️ Mal servi</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="vuCheck">
-                        <label style="margin:0;">Vu</label>
-                    </div>
-                </div>
-                
                 <div id="malServiSection" class="hidden">
                     <div class="form-group">
                         <label>Type de mal servi :</label>
@@ -465,12 +359,8 @@
                         <img id="photoPreview" class="photo-preview" style="display:none;">
                     </div>
                 </div>
-                
-                <div class="form-group">
-                    <label>Observations (optionnel) :</label>
-                    <textarea id="observationsInput" rows="3" placeholder="Notes supplémentaires..."></textarea>
-                </div>
-                
+                <div class="form-group"><label>Observations (optionnel) :</label><textarea id="observationsInput" rows="3" placeholder="Notes supplémentaires..."></textarea></div>
+
                 <h2>Contact</h2>
                 <div class="form-group">
                     <label>Civilité :</label>
@@ -479,22 +369,20 @@
                         <option value="M.">M.</option>
                         <option value="Mme">Mme</option>
                         <option value="Mlle">Mlle</option>
+                        <option value="Vu">👁 Vu</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Nom (optionnel) :</label>
-                    <input type="text" id="nomPersonneInput" placeholder="Nom">
-                </div>
+                <div class="form-group"><label>Nom (optionnel) :</label><input type="text" id="nomPersonneInput" placeholder="Nom"></div>
                 <div class="form-group">
                     <div class="checkbox-group">
                         <input type="checkbox" id="pasCommunicationCheck">
                         <label style="margin:0;">Pas de communication</label>
                     </div>
                 </div>
-                
+
                 <button type="button" onclick="addAddress()">➕ Ajouter l'adresse</button>
                 <button type="button" class="secondary" onclick="finishMission()">✅ Fin de journée</button>`;
-            
+
             document.getElementById('saisiePageContent').innerHTML = saisieHTML;
             loadAddressesFromStorage();
             showPage('saisiePageParent');
@@ -502,12 +390,7 @@
 
         function toggleMalServi() {
             const resultat = document.getElementById('resultatSelect').value;
-            const section = document.getElementById('malServiSection');
-            if (resultat === 'Mal servi') {
-                section.classList.remove('hidden');
-            } else {
-                section.classList.add('hidden');
-            }
+            document.getElementById('malServiSection').classList.toggle('hidden', resultat !== 'Mal servi');
         }
 
         function previewPhoto() {
@@ -515,10 +398,7 @@
             const preview = document.getElementById('photoPreview');
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                };
+                reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; };
                 reader.readAsDataURL(input.files[0]);
             }
         }
@@ -526,9 +406,7 @@
         function updateStreets() {
             const commune = document.getElementById('communeSelect').value;
             const mission = missionsData[currentMissionCode];
-            if (document.getElementById('rueSearch')) {
-                document.getElementById('rueSearch').value = '';
-            }
+            document.getElementById('rueSearch').value = '';
             if (commune === 'AUTRE') {
                 document.getElementById('communeLibreSection').classList.remove('hidden');
                 document.getElementById('rueSelectSection').classList.add('hidden');
@@ -538,8 +416,7 @@
                 document.getElementById('rueSelectSection').classList.remove('hidden');
                 document.getElementById('rueLibreSection').classList.add('hidden');
                 const rues = mission.rues_par_commune[commune] || [];
-                document.getElementById('rueSelect').innerHTML = '<option value="">-- Sélectionner --</option>' + 
-                    rues.map(r => `<option value="${r}">${r}</option>`).join('');
+                document.getElementById('rueSelect').innerHTML = '<option value="">-- Sélectionner --</option>' + rues.map(r => `<option value="${r}">${r}</option>`).join('');
             } else {
                 document.getElementById('communeLibreSection').classList.add('hidden');
                 document.getElementById('rueSelectSection').classList.add('hidden');
@@ -551,47 +428,35 @@
             const commune = document.getElementById('communeSelect').value;
             if (!commune || commune === 'AUTRE') return;
             const searchText = document.getElementById('rueSearch').value.toUpperCase().trim();
-            const mission = missionsData[currentMissionCode];
-            const rues = mission.rues_par_commune[commune] || [];
-            let filteredRues = searchText === '' ? rues : rues.filter(r => r.toUpperCase().startsWith(searchText));
-            if (filteredRues.length > 0) {
-                document.getElementById('rueSelect').innerHTML = '<option value="">-- Sélectionner --</option>' + 
-                    filteredRues.map(r => `<option value="${r}">${r}</option>`).join('');
-            } else {
-                document.getElementById('rueSelect').innerHTML = '<option value="">-- Aucune rue trouvée --</option>';
-            }
+            const rues = missionsData[currentMissionCode].rues_par_commune[commune] || [];
+            const filtered = searchText === '' ? rues : rues.filter(r => r.toUpperCase().startsWith(searchText));
+            document.getElementById('rueSelect').innerHTML = filtered.length > 0
+                ? '<option value="">-- Sélectionner --</option>' + filtered.map(r => `<option value="${r}">${r}</option>`).join('')
+                : '<option value="">-- Aucune rue trouvée --</option>';
         }
 
         function addAddress() {
             let commune = document.getElementById('communeSelect').value;
             let rue = document.getElementById('rueSelect').value;
-            
             if (commune === 'AUTRE') {
                 commune = document.getElementById('communeLibreInput').value.trim().toUpperCase();
                 rue = document.getElementById('rueLibreInput').value.trim().toUpperCase();
             } else {
                 rue = rue || document.getElementById('rueLibreInput').value.trim().toUpperCase();
             }
-            
             const numero = document.getElementById('numeroInput').value;
             const foyers = document.getElementById('foyersInput').value;
             const resultat = document.getElementById('resultatSelect').value;
+            if (!commune || !rue || !numero || !foyers || !resultat) { alert('❌ Remplissez tous les champs obligatoires'); return; }
 
-            if (!commune || !rue || !numero || !foyers || !resultat) {
-                alert('❌ Remplissez tous les champs obligatoires');
-                return;
-            }
-
-            let addr = {
+            const addr = {
                 commune, rue, numero,
                 suffixe: document.getElementById('sufixeInput').value,
                 habitat: document.getElementById('habitatSelect').value,
-                foyers: foyers,
+                foyers,
                 acces: document.getElementById('accesSelect').value,
-                resultat: resultat,
-                vu: document.getElementById('vuCheck').checked,
+                resultat,
                 typemalservi: document.getElementById('typemalservSelect').value || '',
-                photo: document.getElementById('photoInput').files[0] || null,
                 observations: document.getElementById('observationsInput').value || '',
                 civilite: document.getElementById('civiliteSelect').value,
                 nomPersonne: document.getElementById('nomPersonneInput').value,
@@ -601,27 +466,27 @@
             currentAddresses.push(addr);
             saveAddressesToStorage();
             sendToGoogleSheet(addr);
-            
-            // Reset des champs
-            document.getElementById('numeroInput').value = '';
-            document.getElementById('sufixeInput').value = '';
-            document.getElementById('habitatSelect').value = '';
-            document.getElementById('foyersInput').value = '';
-            document.getElementById('accesSelect').value = '';
-            document.getElementById('resultatSelect').value = '';
-            document.getElementById('typemalservSelect').value = '';
-            document.getElementById('photoInput').value = '';
-            document.getElementById('observationsInput').value = '';
-            document.getElementById('vuCheck').checked = false;
-            document.getElementById('civiliteSelect').value = '';
-            document.getElementById('nomPersonneInput').value = '';
+
+            // Reset
+            ['numeroInput','sufixeInput','foyersInput','observationsInput','nomPersonneInput'].forEach(id => document.getElementById(id).value = '');
+            ['habitatSelect','accesSelect','resultatSelect','typemalservSelect','civiliteSelect'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('pasCommunicationCheck').checked = false;
             document.getElementById('communeSelect').value = '';
             document.getElementById('communeLibreInput').value = '';
             document.getElementById('rueLibreInput').value = '';
             document.getElementById('malServiSection').classList.add('hidden');
-            document.getElementById('photoPreview').style.display = 'none';
+            if (document.getElementById('photoInput')) document.getElementById('photoInput').value = '';
+            if (document.getElementById('photoPreview')) document.getElementById('photoPreview').style.display = 'none';
             updateStreets();
+        }
+
+        function buildContactDisplay(addr) {
+            if (addr.civilite === 'Vu') return 'Vu';
+            if (addr.pasCommunication) return (addr.civilite ? addr.civilite + ' - ' : '') + 'Refus nom';
+            let result = '';
+            if (addr.civilite) result += addr.civilite + ' ';
+            if (addr.nomPersonne) result += addr.nomPersonne;
+            return result.trim();
         }
 
         function finishMission() {
@@ -634,85 +499,57 @@
                 <p><strong>Semaine:</strong> ${missionInfo.semaine}</p>
                 <p><strong>Secteurs réalisés:</strong> ${secteurs}</p>
                 <p><strong>Adresses saisies:</strong> ${currentAddresses.length}</p>
-                <table>
-                    <tr>
-                        <th>Magasin</th><th>Numéro</th><th>Rue</th><th>Commune</th>
-                        <th>Foyers</th><th>Accès</th><th>Vu</th><th>Civilité</th>
-                        <th>Nom</th><th>Observations</th><th>Résultat</th>
-                    </tr>`;
-            
+                <table><tr><th>Magasin</th><th>Numéro</th><th>Rue</th><th>Commune</th><th>Foyers</th><th>Accès</th><th>Contact</th><th>Observations</th><th>Résultat</th></tr>`;
+
             currentAddresses.forEach(a => {
-                const numeroComplet = a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero;
+                const num = a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero;
                 reportHTML += `<tr>
-                    <td>${missionInfo.magasin}</td>
-                    <td>${numeroComplet}</td>
-                    <td>${a.rue}</td>
-                    <td>${a.commune}</td>
-                    <td>${a.foyers || ''}</td>
-                    <td>${a.acces || ''}</td>
-                    <td>${a.vu ? 'OUI' : 'NON'}</td>
-                    <td>${a.civilite || ''}</td>
-                    <td>${a.nomPersonne || ''}</td>
-                    <td>${a.observations || ''}</td>
-                    <td>${a.resultat}</td>
-                </tr>`;
+                    <td>${missionInfo.magasin}</td><td>${num}</td><td>${a.rue}</td><td>${a.commune}</td>
+                    <td>${a.foyers||''}</td><td>${a.acces||''}</td><td>${buildContactDisplay(a)}</td>
+                    <td>${a.observations||''}</td><td>${a.resultat}</td></tr>`;
             });
             reportHTML += '</table>';
-            
             document.getElementById('reportContent').innerHTML = reportHTML;
             showPage('endPage');
         }
 
         function resetMission() {
             clearSavedAddresses();
-            currentAddresses = [];
-            missionInfo = {};
-            currentMissionCode = null;
-            addressesSentCount = 0;
+            currentAddresses = []; missionInfo = {}; currentMissionCode = null; addressesSentCount = 0;
             showPage('authPage');
         }
 
         function generateExcelFile() {
             const data = [
-                ['Magasin', 'Numéros', 'Adresses', 'Ville', 'Nombre de foyers', 'Accès', 'Vu', 'Civilité', 'Nom du résident', 'Observations', 'Réception document'],
+                ['Magasin','Numéros','Adresses','Ville','Nombre de foyers','Accès','Contact','Observations','Réception document'],
                 ...currentAddresses.map(a => [
                     missionInfo.magasin,
                     a.suffixe ? `${a.numero} ${a.suffixe}` : a.numero,
-                    a.rue,
-                    a.commune,
-                    a.foyers || '',
-                    a.acces || '',
-                    a.vu ? 'OUI' : 'NON',
-                    a.civilite || '',
-                    a.pasCommunication ? 'Refus nom' : (a.nomPersonne || ''),
-                    a.observations || '',
+                    a.rue, a.commune, a.foyers||'', a.acces||'',
+                    buildContactDisplay(a),
+                    a.observations||'',
                     a.resultat === 'Bien servi' ? 'SERVI' : a.resultat === 'Non servi' ? 'NON SERVI' : 'MAL SERVI'
                 ])
             ];
-            
             const ws = XLSX.utils.aoa_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Feuil1');
-            ws['!cols'] = [{wch:25},{wch:12},{wch:35},{wch:25},{wch:15},{wch:12},{wch:8},{wch:12},{wch:25},{wch:30},{wch:20}];
-            return { wb: wb, fileName: `Rapport_${missionInfo.magasin}_s${missionInfo.semaine}.xlsx` };
+            ws['!cols'] = [{wch:25},{wch:12},{wch:35},{wch:25},{wch:15},{wch:12},{wch:25},{wch:30},{wch:20}];
+            return { wb, fileName: `Rapport_${missionInfo.magasin}_s${missionInfo.semaine}.xlsx` };
         }
 
         function sendByEmail() {
             const { wb, fileName } = generateExcelFile();
             const subject = `Compte rendu ${missionInfo.client} - ${missionInfo.magasin} - Semaine ${missionInfo.semaine}`;
             const body = `Bonjour,\n\nVeuillez trouver en pièce jointe le compte rendu de la mission.\n\nCordialement,\n${missionInfo.prenom} ${missionInfo.nom}`;
-            const mailtoLink = `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
             XLSX.writeFile(wb, fileName);
-            setTimeout(() => {
-                window.location.href = mailtoLink;
-                alert(`✅ Fichier téléchargé ! Joignez-le au mail qui va s'ouvrir.\n\nObjet pré-rempli: "${subject}"`);
-            }, 500);
+            setTimeout(() => { window.location.href = `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`; }, 500);
         }
 
         function shareReport() {
             const { wb, fileName } = generateExcelFile();
             XLSX.writeFile(wb, fileName);
-            alert('✅ Fichier prêt à partager! Appuie et maintiens le fichier pour le partager par Email, WhatsApp, Google Drive, etc.');
+            alert('✅ Fichier prêt à partager !');
         }
 
         function downloadReport() {
